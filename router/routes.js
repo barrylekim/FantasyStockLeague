@@ -105,38 +105,42 @@ router.get("/getCompany", (req, res) => {
 });
 
 createPriceEntry = function(price) {
-    let id = generateID();
-    let date = new Date();
-    let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
-    client.query(addPrice, [id, date.toString(), price], (err, result) => {
-        if (err) {
-            return err;
-        } else {
-            return id;
-        }
-    });
+    return new Promise((resolve, reject) => {
+        let id = generateID();
+        let date = new Date();
+        let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
+        client.query(addPrice, [id, date.toString(), price], (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(id);
+            }
+        });
+    }) 
 }
 
 router.get("/addRows", (req, res) => {
     let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
 
-    let id = createPriceEntry(58);    
-    client.query(addQuery, ["APPL", 50, "Tech", "Apple", id], (err, result) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(result);
-        }
-    });
+    createPriceEntry(58).then((id) => {
+        client.query(addQuery, ["APPL", 50, "Tech", "Apple", id], (err, result) => {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            }
+        });
+    })
     
-    let id1 = createPriceEntry(150);
-    client.query(addQuery, ["GOOG", 25, "Tech", "Google", id1], (err, result) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(result);
-        }
-    });    
+    createPriceEntry(150).then((id1) => {
+        client.query(addQuery, ["GOOG", 25, "Tech", "Google", id1], (err, result) => {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            }
+        });    
+    })
     res.send();
 });
 
