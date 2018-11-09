@@ -1,7 +1,7 @@
 const express = require("express");
 var router = express.Router();
 var pg = require("pg");
-var connectionString = "postgres://" + "304group" + ":" + "rohan" +  "@localhost:" + "5433" + "/marketWatch";
+var connectionString = "postgres://304group:rohan@localhost:5433/marketWatch";
 var client = new pg.Client(connectionString);
 client.connect();
 
@@ -14,7 +14,7 @@ let portfolio = `CREATE TABLE IF NOT EXISTS portfolio(portfolioID VARCHAR(10) NO
 let watchList = `CREATE TABLE IF NOT EXISTS watchlist(watchlistID VARCHAR(10) NOT NULL PRIMARY KEY, traderID VARCHAR(10), FOREIGN KEY (traderID) REFERENCES trader ON DELETE SET NULL ON UPDATE CASCADE)`;
 let includes = `CREATE TABLE IF NOT EXISTS includes(watchlistID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, PRIMARY KEY (companyID, watchlistID), FOREIGN KEY (watchlistID) REFERENCES watchlist(watchlistID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
 let contains = `CREATE TABLE IF NOT EXISTS contains(portfolioID VARCHAR(10) NOT NULL, companyID CHAR(4), PRIMARY KEY (portfolioID, companyID), FOREIGN KEY (portfolioID) REFERENCES portfolio(portfolioID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
-let transaction = `CREATE TABLE IF NOT EXISTS transaction(transactionID VARCHAR(10) PRIMARY KEY, traderID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, priceID VARCHAR(10) NOT NULL, type BIT, sharesPurchased INTEGER, FOREIGN KEY (traderID) REFERENCES trader(traderID) ON DELETE NO ACTION ON UPDATE CASCADE, FOREIGN KEY (priceID) REFERENCES price(priceID) ON DELETE NO ACTION ON UPDATE CASCADE)`;
+let transaction = `CREATE TABLE IF NOT EXISTS transaction(transactionID VARCHAR(10) PRIMARY KEY, traderID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, priceID VARCHAR(10) NOT NULL, type BIT(1), sharesPurchased INTEGER, FOREIGN KEY (traderID) REFERENCES trader(traderID) ON DELETE NO ACTION ON UPDATE CASCADE, FOREIGN KEY (priceID) REFERENCES price(priceID) ON DELETE NO ACTION ON UPDATE CASCADE)`;
 
 let arr = [price, stock, leaderBoard, portfolio, trader, isOn, watchList, includes, contains, transaction];
 
@@ -28,26 +28,59 @@ arr.forEach((query) => {
     })
 });
 
-router.get("/buy", (req, res) => {
-    let company = req.body.company;
-    let trader = req.body.trader;
+
+// get price from company(priceID)
+// add transaction row
+// update trader funds
+// check includes table and update if necessary
+// update isOn based on funds
+// add to contains if doesn't already exist
+router.post("/buy", (req, res) => {
     let price = req.body.price;
-    let id = createPriceEntry(price, res);
-    console.log("/buy called");
+    let PID = createPriceEntry(price, res);
+    let TID = req.body.traderID;
+    let CID = req.body.companyID;
+    let TXID = generateID();
+    let numOfShares = req.body.numOfShares;
+    let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
+    client.query(addTX, [TXID, TID, CID, PID, 1, numOfShares]);
 });
 
-createPriceEntry = function(price, res) {
+router.post('/sell', (req, res) => {
+
+});
+
+generateID = function() {
     let id = Math.floor((Math.random()*1000)).toString();
-    let date = new Date();
-    let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
-    client.query(addPrice, [id, date.toString(), price], (err, result) => {
-        if (err) {
-            res.status(400, {error: err});
-        } else {
-            return id;
-        }
-    });
+    return id;
 }
+
+//TODO
+router.post('/addToWatchList', (req, res) => {
+
+});
+
+//TODO
+// add trade to leaderboard
+// update numofplayers on leaderboard table
+// create portfolio row
+// assign porfolio row to trader
+router.post("/addTrader", (req, res) => {
+    let addTrader = `INSERT INTO trader(traderID, funds, tradername, portfolioID) values($1, $2, $3, $4)`;
+    let TID = generateID();
+    let PortID = generateID();
+    client.query(addTrader, [TID, 300000, "rohan is a baller", PortID]);
+    res.send("trader added");
+});
+
+//returns top 5 players on the leaderboard
+router.get("/getTopPlayers", (req, res) => {
+
+});
+
+
+
+//Below are for testing
 
 router.get("/getPrice", (req, res) => {
     let select = `SELECT * FROM price`;
@@ -71,29 +104,23 @@ router.get("/getCompany", (req, res) => {
     });
 });
 
-router.get("/addRows" , (req, res) => {
-    let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-    let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
+createPriceEntry = function(price) {
+    let id = generateID();
     let date = new Date();
-    let id = Math.floor((Math.random()*1000 + 1));
-    id = id.toString();
-    client.query(addPrice, [id, date.toString(), 58], (err, result) => {
+    let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
+    client.query(addPrice, [id, date.toString(), price], (err, result) => {
         if (err) {
-            console.log(err);
+            return err;
         } else {
-            console.log(result);
+            return id;
         }
     });
-    
-    let id1 = Math.floor((Math.random()*1000)).toString();
-    client.query(addPrice, [id1, date.toString(), 150], (err, result) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(result);
-        }
-    });
-    
+}
+
+router.get("/addRows", (req, res) => {
+    let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+
+    let id = createPriceEntry(58);    
     client.query(addQuery, ["APPL", 50, "Tech", "Apple", id], (err, result) => {
         if (err) {
             console.log(err);
@@ -102,6 +129,7 @@ router.get("/addRows" , (req, res) => {
         }
     });
     
+    let id1 = createPriceEntry(150);
     client.query(addQuery, ["GOOG", 25, "Tech", "Google", id1], (err, result) => {
         if (err) {
             console.log(err);
