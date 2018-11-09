@@ -96,6 +96,18 @@ router.get("/getPrice/:id", (req, res) => {
     })
 });
 
+router.get("/getCompany/:id", (req, res) => {
+    let id = req.params.id;
+    let select = `SELECT * FROM company WHERE companyID = $1`;
+    client.query(select, [id], (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.send(result.rows);
+        }
+    })
+});
+
 router.get("/getPrice", (req, res) => {
     let select = `SELECT * FROM price`;
     client.query(select, (err, result) => {
