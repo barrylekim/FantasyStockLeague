@@ -37,14 +37,14 @@ arr.forEach((query) => {
 // add to contains if doesn't already exist
 router.post("/buy", (req, res) => {
     let price = req.body.price;
-    let PID = createPriceEntry(price, res);
-    let TID = req.body.traderID;
-    let CID = req.body.companyID;
-    let TXID = generateID();
-    let numOfShares = req.body.numOfShares;
-    let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
-    client.query(addTX, [TXID, TID, CID, PID, 1, numOfShares]);
-
+    createPriceEntry(price, res).then((PID) => {
+        let TID = req.body.traderID;
+        let CID = req.body.companyID;
+        let TXID = generateID();
+        let numOfShares = req.body.numOfShares;
+        let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
+        client.query(addTX, [TXID, TID, CID, PID, 1, numOfShares]);
+    })
 });
 
 router.post('/sell', (req, res) => {
@@ -91,7 +91,7 @@ router.get("/getPrice/:id", (req, res) => {
         if (err) {
             console.log(err);
         } else {
-            res.send(result.rows);
+            res.send(result.rows[0]);
         }
     })
 });
@@ -103,7 +103,7 @@ router.get("/getCompany/:id", (req, res) => {
         if (err) {
             console.log(err);
         } else {
-            res.send(result.rows);
+            res.send(result.rows[0]);
         }
     })
 });
