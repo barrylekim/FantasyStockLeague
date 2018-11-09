@@ -6,7 +6,7 @@ var client = new pg.Client(connectionString);
 client.connect();
 
 let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value INTEGER)`;
-let stock = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(4) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(32), companyName VARCHAR(32), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
+let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(4) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(32), companyName VARCHAR(32), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
 let leaderBoard = `CREATE TABLE IF NOT EXISTS leaderboard(leaderboardID VARCHAR(10) NOT NULL PRIMARY KEY, numOfTraders INTEGER)`;
 let isOn = `CREATE TABLE IF NOT EXISTS ison(leaderboardID VARCHAR(10) NOT NULL, traderID VARCHAR(10) NOT NULL, rank INTEGER, PRIMARY KEY (leaderboardID, traderID), FOREIGN KEY (leaderboardID) REFERENCES leaderboard(leaderboardID), FOREIGN KEY (traderID) REFERENCES trader(traderID))`;
 let trader = `CREATE TABLE IF NOT EXISTS trader(traderID VARCHAR(10) NOT NULL PRIMARY KEY, funds MONEY, traderName VARCHAR(12) UNIQUE, portfolioID CHAR(10) NOT NULL, FOREIGN KEY (portfolioID) REFERENCES portfolio ON DELETE CASCADE ON UPDATE CASCADE)`;
@@ -16,7 +16,7 @@ let includes = `CREATE TABLE IF NOT EXISTS includes(watchlistID VARCHAR(10) NOT 
 let contains = `CREATE TABLE IF NOT EXISTS contains(portfolioID VARCHAR(10) NOT NULL, companyID CHAR(4), PRIMARY KEY (portfolioID, companyID), FOREIGN KEY (portfolioID) REFERENCES portfolio(portfolioID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
 let transaction = `CREATE TABLE IF NOT EXISTS transaction(transactionID VARCHAR(10) PRIMARY KEY, traderID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, priceID VARCHAR(10) NOT NULL, type BIT(1), sharesPurchased INTEGER, FOREIGN KEY (traderID) REFERENCES trader(traderID) ON DELETE NO ACTION ON UPDATE CASCADE, FOREIGN KEY (priceID) REFERENCES price(priceID) ON DELETE NO ACTION ON UPDATE CASCADE)`;
 
-let arr = [price, stock, leaderBoard, portfolio, trader, isOn, watchList, includes, contains, transaction];
+let arr = [price, company, leaderBoard, portfolio, trader, isOn, watchList, includes, contains, transaction];
 
 arr.forEach((query) => {
     client.query(query, (err, result) => {
@@ -44,6 +44,7 @@ router.post("/buy", (req, res) => {
     let numOfShares = req.body.numOfShares;
     let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
     client.query(addTX, [TXID, TID, CID, PID, 1, numOfShares]);
+
 });
 
 router.post('/sell', (req, res) => {
@@ -61,7 +62,7 @@ router.post('/addToWatchList', (req, res) => {
 });
 
 //TODO
-// add trade to leaderboard
+// add trader to leaderboard
 // update numofplayers on leaderboard table
 // create portfolio row
 // assign porfolio row to trader
@@ -131,7 +132,7 @@ router.get("/addRows", (req, res) => {
             }
         });
     })
-    
+
     createPriceEntry(150).then((id1) => {
         client.query(addQuery, ["GOOG", 25, "Tech", "Google", id1], (err, result) => {
             if (err) {
