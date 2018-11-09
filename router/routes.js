@@ -8,15 +8,14 @@ client.connect();
 let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value INTEGER)`;
 let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(4) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(32), companyName VARCHAR(32), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
 let leaderBoard = `CREATE TABLE IF NOT EXISTS leaderboard(leaderboardID VARCHAR(10) NOT NULL PRIMARY KEY, numOfTraders INTEGER)`;
-let isOn = `CREATE TABLE IF NOT EXISTS ison(leaderboardID VARCHAR(10) NOT NULL, traderID VARCHAR(10) NOT NULL, rank INTEGER, PRIMARY KEY (leaderboardID, traderID), FOREIGN KEY (leaderboardID) REFERENCES leaderboard(leaderboardID), FOREIGN KEY (traderID) REFERENCES trader(traderID))`;
-let trader = `CREATE TABLE IF NOT EXISTS trader(traderID VARCHAR(10) NOT NULL PRIMARY KEY, funds MONEY, traderName VARCHAR(12) UNIQUE, portfolioID CHAR(10) NOT NULL, FOREIGN KEY (portfolioID) REFERENCES portfolio ON DELETE CASCADE ON UPDATE CASCADE)`;
+let trader = `CREATE TABLE IF NOT EXISTS trader(traderID VARCHAR(10) NOT NULL PRIMARY KEY, funds MONEY, traderName VARCHAR(12) UNIQUE, leaderboardID VARCHAR(10) NOT NULL, portfolioID CHAR(10) NOT NULL, FOREIGN KEY (portfolioID) REFERENCES portfolio ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY (leaderboardID) REFERENCES leaderboard ON DELETE CASCADE ON UPDATE CASCADE)`;
 let portfolio = `CREATE TABLE IF NOT EXISTS portfolio(portfolioID VARCHAR(10) NOT NULL PRIMARY KEY)`;
 let watchList = `CREATE TABLE IF NOT EXISTS watchlist(watchlistID VARCHAR(10) NOT NULL PRIMARY KEY, traderID VARCHAR(10), FOREIGN KEY (traderID) REFERENCES trader ON DELETE SET NULL ON UPDATE CASCADE)`;
 let includes = `CREATE TABLE IF NOT EXISTS includes(watchlistID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, PRIMARY KEY (companyID, watchlistID), FOREIGN KEY (watchlistID) REFERENCES watchlist(watchlistID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
 let contains = `CREATE TABLE IF NOT EXISTS contains(portfolioID VARCHAR(10) NOT NULL, companyID CHAR(4), PRIMARY KEY (portfolioID, companyID), FOREIGN KEY (portfolioID) REFERENCES portfolio(portfolioID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
 let transaction = `CREATE TABLE IF NOT EXISTS transaction(transactionID VARCHAR(10) PRIMARY KEY, traderID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, priceID VARCHAR(10) NOT NULL, type BIT(1), sharesPurchased INTEGER, FOREIGN KEY (traderID) REFERENCES trader(traderID) ON DELETE NO ACTION ON UPDATE CASCADE, FOREIGN KEY (priceID) REFERENCES price(priceID) ON DELETE NO ACTION ON UPDATE CASCADE)`;
 
-let arr = [price, company, leaderBoard, portfolio, trader, isOn, watchList, includes, contains, transaction];
+let arr = [price, company, leaderBoard, portfolio, trader, watchList, includes, contains, transaction];
 
 arr.forEach((query) => {
     client.query(query, (err, result) => {
@@ -28,7 +27,7 @@ arr.forEach((query) => {
     })
 });
 
-
+// given companyID and traderID
 // get price from company(priceID)
 // add transaction row
 // update trader funds
@@ -36,15 +35,20 @@ arr.forEach((query) => {
 // update isOn based on funds
 // add to contains if doesn't already exist
 router.post("/buy", (req, res) => {
-    let price = req.body.price;
-    createPriceEntry(price, res).then((PID) => {
-        let TID = req.body.traderID;
-        let CID = req.body.companyID;
-        let TXID = generateID();
-        let numOfShares = req.body.numOfShares;
-        let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
-        client.query(addTX, [TXID, TID, CID, PID, 1, numOfShares]);
+    let TID = req.body.traderID;
+    let CID = req.body.companyID;
+    console.log(TID);
+    console.log(CID);
+    let findPrice = `SELECT * FROM company WHERE companyid = $1`;
+    client.query(findPrice, [CID], (err, result) => {
+        console.log(result);
+        let priceID = result[0].priceID;
+        res.send(priceID);
     })
+    // let TXID = generateID();
+    // let numOfShares = req.body.numOfShares;
+    // let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
+    // client.query(addTX, [TXID, TID, CID, PID, 1, numOfShares]);
 });
 
 router.post('/sell', (req, res) => {
@@ -79,7 +83,20 @@ router.get("/getTopPlayers", (req, res) => {
 
 });
 
-
+createPriceEntry = function(price) {
+    return new Promise((resolve, reject) => {
+        let id = generateID();
+        let date = new Date();
+        let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
+        client.query(addPrice, [id, date.toString(), price], (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(id);
+            }
+        });
+    }) 
+}
 
 //Below are for testing
 
@@ -129,21 +146,6 @@ router.get("/getCompany", (req, res) => {
         }
     });
 });
-
-createPriceEntry = function(price) {
-    return new Promise((resolve, reject) => {
-        let id = generateID();
-        let date = new Date();
-        let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
-        client.query(addPrice, [id, date.toString(), price], (err, result) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(id);
-            }
-        });
-    }) 
-}
 
 router.get("/addRows", (req, res) => {
     let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
