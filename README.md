@@ -5,7 +5,7 @@ The application will show how users rank against each other based on their inves
 - Node.js - server side scripts
 - Express.js - routing
 - React.js Frontend
-sick techstack jason
+
 ## Getting Started
 ##### Node version - `latest`
 ##### Npm version - `latest`
