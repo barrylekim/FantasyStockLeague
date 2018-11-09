@@ -83,6 +83,19 @@ router.get("/getTopPlayers", (req, res) => {
 
 //Below are for testing
 
+
+router.get("/getPrice/:id", (req, res) => {
+    let id = req.params.id;
+    let select = `SELECT * FROM price WHERE priceID = $1`;
+    client.query(select, [id], (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.send(result.rows);
+        }
+    })
+});
+
 router.get("/getPrice", (req, res) => {
     let select = `SELECT * FROM price`;
     client.query(select, (err, result) => {
