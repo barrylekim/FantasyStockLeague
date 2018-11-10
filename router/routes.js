@@ -42,6 +42,17 @@ client.query(addLeaderboard, [leaderboardID, 0], (err, result) => {
     }
 });
 
+router.get('/portfolio', (req, res) => {
+    let port = `SELECT * FROM portfolio`;
+    client.query(port, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.send(result);
+        }
+    })
+});
+
 // given companyID and traderID
 // get price from company(priceID)
 // add transaction row
@@ -84,29 +95,21 @@ router.post("/buy", (req, res) => {
                                         if (err) {
                                             res.status(500).json({ error: err });
                                         } else {
-                                            let getPortID = `SELECT portfolioID FROM trader WHERE traderID = $1`;
-                                            client.query(getPortID, [TID], (err, portfolioIDrows) => {
+                                            let join = `SELECT companyID FROM trader NATURAL JOIN contains`;
+                                            client.query(join, (err, companys) => {
                                                 if (err) {
-                                                    res.status(500, { error: err });
+                                                    res.status(500).json({ error: err });
                                                 } else {
-                                                    let portfolioID = portfolioIDrows.rows[0].portfolioid;
-                                                    let check = `SELECT companyID FROM contains WHERE portfolioID = $1`;
-                                                    client.query(check, [portfolioID], (err, companys) => {
-                                                        if (err) {
-                                                            res.status(500).json({ error: err });
-                                                        } else {
-                                                            if (companys.rows.length === 0) {
-                                                                let addRow = `INSERT INTO contains(portfolioID, companyID) values($1, $2)`;
-                                                                client.query(addRow, [portfolioID, CID], (err) => {
-                                                                    if (err) {
-                                                                        res.status(500).json({ error: err });
-                                                                    } else {
-                                                                        res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
-                                                                    }
-                                                                });
+                                                    if (companys.rows.length === 0) {
+                                                        let addRow = `INSERT INTO contains(portfolioID, companyID) values($1, $2)`;
+                                                        client.query(addRow, [portfolioID, CID], (err) => {
+                                                            if (err) {
+                                                                res.status(500).json({ error: err });
+                                                            } else {
+                                                                res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
                                                             }
-                                                        }
-                                                    });
+                                                        });
+                                                    }
                                                 }
                                             });
                                         }
