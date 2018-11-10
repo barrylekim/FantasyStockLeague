@@ -181,10 +181,10 @@ router.post('/sell', (req, res) => {
     });
 });
 
-generateID = function() {
-    let id = Math.floor((Math.random()*1000)).toString();
+generateID = function () {
+    let id = Math.floor((Math.random() * 1000)).toString();
     while (IDMap[id]) {
-        id = Math.floor((Math.random()*1000)).toString();
+        id = Math.floor((Math.random() * 1000)).toString();
     }
     return id;
 }
@@ -233,9 +233,9 @@ router.get("/getTrader/:id", (req, res) => {
     let getTrader = `SELECT * FROM trader WHERE traderID = $1`;
     client.query(getTrader, req.params.id, (err, result) => {
         if (err) {
-            res.status(500, {err: error});
+            res.status(500, { err: error });
         } else {
-            res.status(200, {result: result[0]});
+            res.status(200, { result: result[0] });
         }
     })
 });
@@ -262,6 +262,16 @@ createPriceEntry = function (price) {
 
 //Below are for testing
 
+router.get("/getTraders", (req, res) => {
+    let select = `SELECT * FROM trader`;
+    client.query(select, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            res.send(result.rows);
+        }
+    });
+});
 
 router.get("/getPrice/:id", (req, res) => {
     let id = req.params.id;
