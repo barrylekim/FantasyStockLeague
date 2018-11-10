@@ -40,36 +40,60 @@ router.post("/buy", (req, res) => {
     let numOfShares = req.body.numOfShares;
     let findCompany  = `SELECT * FROM company WHERE companyid = $1`;
     client.query(findCompany, [CID], (err, company) => {
+        if (err) {
+            res.status(500, {error: err});
+        }
         if (rows.length === 0) {
             res.status(400, {error: "INVALID COMPANYID"});
         }
         let priceID = company.rows[0].priceid;
         let findPrice = `SELECT * FROM price WHERE priceid = $1`;
         client.query(findPrice, [priceID], (err, price) => {
+            if (err) {
+                res.status(500, {error: err});
+            }
             let row = price.rows[0];
             let value = row.value;
             let TXID = generateID();
             let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
             client.query(addTX, [TXID, TID, CID, priceID, 1, numOfShares], (err) => {
+                if (err) {
+                    res.status(500, {error: err});
+                }
                 let findFunds = `SELECT funds FROM trader WHERE traderID = $1`;
                 client.query(findFunds, [TID], (err, funds) => {
+                    if (err) {
+                        res.status(500, {error: err});
+                    }
                     let amount = funds.rows[0];
                     amount -= (value*numOfShares);
                     let updateFunds = `UPDATE trader SET funds=($1) WHERE traderID=($2)`;
                     client.query(updateFunds, [amount, TID], (err) => {
+                        if (err) {
+                            res.status(500, {error: err});
+                        }
                         let getPortID = `SELECT portfolioID FROM trader WHERE traderID = $1`;
                         client.query(getPortID, [TID], (err, portfolioIDrows) => {
+                            if (err) {
+                                res.status(500, {error: err});
+                            }
                             let portfolioID = portfolioIDrows[0];
                             let check = `SELECT companyID FROM contains WHERE portfolioID = $1`;
                             client.query(check, [portfolioID], (err, companys) => {
+                                if (err) {
+                                    res.status(500, {error: err});
+                                }
                                 if (companys.rows.length === 0) {
                                     let addRow = `INSERT INTO contains(portfolioID, companyID) values($1, $2)`;
                                     client.query(addRow, [portfolioID, CID], (err) => {
+                                        if (err) {
+                                            res.status(500, {error: err});
+                                        }
                                         res.status(200, {message: numOfShares + " of " + CID + " purchased"});
                                     });
                                 }
-                            })
-                        })
+                            });
+                        });
                     });
                 });
             });
@@ -83,31 +107,55 @@ router.post('/sell', (req, res) => {
     let numOfShares = req.body.numOfShares;
     let findCompany  = `SELECT * FROM company WHERE companyid = $1`;
     client.query(findCompany, [CID], (err, company) => {
+        if (err) {
+            res.status(500, {error: err});
+        }
         if (rows.length === 0) {
             res.status(400, {error: "INVALID COMPANYID"});
         }
         let priceID = company.rows[0].priceid;
         let findPrice = `SELECT * FROM price WHERE priceid = $1`;
         client.query(findPrice, [priceID], (err, price) => {
+            if (err) {
+                res.status(500, {error: err});
+            }
             let row = price.rows[0];
             let value = row.value;
             let TXID = generateID();
             let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
-            client.query(addTX, [TXID, TID, CID, priceID, 1, numOfShares], (err) => {
+            client.query(addTX, [TXID, TID, CID, priceID, 0, numOfShares], (err) => {
+                if (err) {
+                    res.status(500, {error: err});
+                }
                 let findFunds = `SELECT funds FROM trader WHERE traderID = $1`;
                 client.query(findFunds, [TID], (err, funds) => {
+                    if (err) {
+                        res.status(500, {error: err});
+                    }
                     let amount = funds.rows[0];
                     amount += (value*numOfShares);
                     let updateFunds = `UPDATE trader SET funds=($1) WHERE traderID=($2)`;
                     client.query(updateFunds, [amount, TID], (err) => {
+                        if (err) {
+                            res.status(500, {error: err});
+                        }
                         let getPortID = `SELECT portfolioID FROM trader WHERE traderID = $1`;
                         client.query(getPortID, [TID], (err, portfolioIDrows) => {
+                            if (err) {
+                                res.status(500, {error: err});
+                            }
                             let portfolioID = portfolioIDrows[0];
                             let check = `SELECT companyID FROM contains WHERE portfolioID = $1`;
                             client.query(check, [portfolioID], (err, companys) => {
+                                if (err) {
+                                    res.status(500, {error: err});
+                                }
                                 if (companys.rows.length > 0) {
                                     let delteRow = `DELETE FROM contains WHERE portfolioID = $1 AND companyID = $2`;
                                     client.query(delteRow, [portfolioID, CID], (err) => {
+                                        if (err) {
+                                            res.status(500, {error: err});
+                                        }
                                         res.status(200, {message: numOfShares + " of " + CID + " sold"});
                                     });
                                 }
