@@ -4,6 +4,7 @@ var pg = require("pg");
 var connectionString = "postgres://304group:rohan@localhost:5433/marketWatch";
 var client = new pg.Client(connectionString);
 client.connect();
+let startingFund = 30000;
 
 let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value INTEGER)`;
 let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(4) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(32), companyName VARCHAR(32), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
@@ -27,6 +28,19 @@ arr.forEach((query) => {
     })
 });
 
+// TODO
+// Add a new leaderboard with 0 traders at first
+
+let leaderboardID = 1;
+let addLeaderboard = `INSERT INTO leaderboard(leaderboardID, numOfTraders) values ($1, $2)`
+client.query(addLeaderboard, [leaderboardID, 0], (err, result) => {
+    if (err) {
+        console.log("LEADERBOARD already exists");
+    } else {
+        console.log(result);
+    }
+})
+
 // given companyID and traderID
 // get price from company(priceID)
 // add transaction row
@@ -38,19 +52,19 @@ router.post("/buy", (req, res) => {
     let TID = req.body.traderID;
     let CID = req.body.companyID;
     let numOfShares = req.body.numOfShares;
-    let findCompany  = `SELECT * FROM company WHERE companyid = $1`;
+    let findCompany = `SELECT * FROM company WHERE companyid = $1`;
     client.query(findCompany, [CID], (err, company) => {
         if (err) {
-            res.status(500, {error: err});
+            res.status(500, { error: err });
         }
         if (rows.length === 0) {
-            res.status(400, {error: "INVALID COMPANYID"});
+            res.status(400, { error: "INVALID COMPANYID" });
         }
         let priceID = company.rows[0].priceid;
         let findPrice = `SELECT * FROM price WHERE priceid = $1`;
         client.query(findPrice, [priceID], (err, price) => {
             if (err) {
-                res.status(500, {error: err});
+                res.status(500, { error: err });
             }
             let row = price.rows[0];
             let value = row.value;
@@ -58,38 +72,38 @@ router.post("/buy", (req, res) => {
             let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
             client.query(addTX, [TXID, TID, CID, priceID, 1, numOfShares], (err) => {
                 if (err) {
-                    res.status(500, {error: err});
+                    res.status(500, { error: err });
                 }
                 let findFunds = `SELECT funds FROM trader WHERE traderID = $1`;
                 client.query(findFunds, [TID], (err, funds) => {
                     if (err) {
-                        res.status(500, {error: err});
+                        res.status(500, { error: err });
                     }
                     let amount = funds.rows[0];
-                    amount -= (value*numOfShares);
+                    amount -= (value * numOfShares);
                     let updateFunds = `UPDATE trader SET funds=($1) WHERE traderID=($2)`;
                     client.query(updateFunds, [amount, TID], (err) => {
                         if (err) {
-                            res.status(500, {error: err});
+                            res.status(500, { error: err });
                         }
                         let getPortID = `SELECT portfolioID FROM trader WHERE traderID = $1`;
                         client.query(getPortID, [TID], (err, portfolioIDrows) => {
                             if (err) {
-                                res.status(500, {error: err});
+                                res.status(500, { error: err });
                             }
                             let portfolioID = portfolioIDrows[0];
                             let check = `SELECT companyID FROM contains WHERE portfolioID = $1`;
                             client.query(check, [portfolioID], (err, companys) => {
                                 if (err) {
-                                    res.status(500, {error: err});
+                                    res.status(500, { error: err });
                                 }
                                 if (companys.rows.length === 0) {
                                     let addRow = `INSERT INTO contains(portfolioID, companyID) values($1, $2)`;
                                     client.query(addRow, [portfolioID, CID], (err) => {
                                         if (err) {
-                                            res.status(500, {error: err});
+                                            res.status(500, { error: err });
                                         }
-                                        res.status(200, {message: numOfShares + " of " + CID + " purchased"});
+                                        res.status(200, { message: numOfShares + " of " + CID + " purchased" });
                                     });
                                 }
                             });
@@ -105,19 +119,19 @@ router.post('/sell', (req, res) => {
     let TID = req.body.traderID;
     let CID = req.body.companyID;
     let numOfShares = req.body.numOfShares;
-    let findCompany  = `SELECT * FROM company WHERE companyid = $1`;
+    let findCompany = `SELECT * FROM company WHERE companyid = $1`;
     client.query(findCompany, [CID], (err, company) => {
         if (err) {
-            res.status(500, {error: err});
+            res.status(500, { error: err });
         }
         if (rows.length === 0) {
-            res.status(400, {error: "INVALID COMPANYID"});
+            res.status(400, { error: "INVALID COMPANYID" });
         }
         let priceID = company.rows[0].priceid;
         let findPrice = `SELECT * FROM price WHERE priceid = $1`;
         client.query(findPrice, [priceID], (err, price) => {
             if (err) {
-                res.status(500, {error: err});
+                res.status(500, { error: err });
             }
             let row = price.rows[0];
             let value = row.value;
@@ -125,38 +139,38 @@ router.post('/sell', (req, res) => {
             let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
             client.query(addTX, [TXID, TID, CID, priceID, 0, numOfShares], (err) => {
                 if (err) {
-                    res.status(500, {error: err});
+                    res.status(500, { error: err });
                 }
                 let findFunds = `SELECT funds FROM trader WHERE traderID = $1`;
                 client.query(findFunds, [TID], (err, funds) => {
                     if (err) {
-                        res.status(500, {error: err});
+                        res.status(500, { error: err });
                     }
                     let amount = funds.rows[0];
-                    amount += (value*numOfShares);
+                    amount += (value * numOfShares);
                     let updateFunds = `UPDATE trader SET funds=($1) WHERE traderID=($2)`;
                     client.query(updateFunds, [amount, TID], (err) => {
                         if (err) {
-                            res.status(500, {error: err});
+                            res.status(500, { error: err });
                         }
                         let getPortID = `SELECT portfolioID FROM trader WHERE traderID = $1`;
                         client.query(getPortID, [TID], (err, portfolioIDrows) => {
                             if (err) {
-                                res.status(500, {error: err});
+                                res.status(500, { error: err });
                             }
                             let portfolioID = portfolioIDrows[0];
                             let check = `SELECT companyID FROM contains WHERE portfolioID = $1`;
                             client.query(check, [portfolioID], (err, companys) => {
                                 if (err) {
-                                    res.status(500, {error: err});
+                                    res.status(500, { error: err });
                                 }
                                 if (companys.rows.length > 0) {
                                     let delteRow = `DELETE FROM contains WHERE portfolioID = $1 AND companyID = $2`;
                                     client.query(delteRow, [portfolioID, CID], (err) => {
                                         if (err) {
-                                            res.status(500, {error: err});
+                                            res.status(500, { error: err });
                                         }
-                                        res.status(200, {message: numOfShares + " of " + CID + " sold"});
+                                        res.status(200, { message: numOfShares + " of " + CID + " sold" });
                                     });
                                 }
                             })
@@ -168,8 +182,8 @@ router.post('/sell', (req, res) => {
     });
 });
 
-generateID = function() {
-    let id = Math.floor((Math.random()*1000)).toString();
+generateID = function () {
+    let id = Math.floor((Math.random() * 1000)).toString();
     return id;
 }
 
@@ -181,14 +195,35 @@ router.post('/addToWatchList', (req, res) => {
 //TODO
 // add trader to leaderboard
 // update numofplayers on leaderboard table
-// create portfolio row
-// assign porfolio row to trader
+// create portfolio row and gave trader the same portfolio ID
+// Tables changed: Trader, Portfolio, Leaderboard
 router.post("/addTrader", (req, res) => {
-    let addTrader = `INSERT INTO trader(traderID, funds, tradername, portfolioID) values($1, $2, $3, $4)`;
+    let name = req.body.name;
+    let addPortfolioSQL = `INSERT INTO portfolio(portfolioID) values ($1)`
     let TID = generateID();
     let PortID = generateID();
-    client.query(addTrader, [TID, 300000, "rohan is a baller", PortID]);
-    res.send("trader added");
+    client.query(addPortfolioSQL, [PortID], (err1, result1) => {
+        if (err1) {
+            res.status(500, { error: err1 });
+        } else {
+            let addTraderSQL = `INSERT INTO trader(traderID, funds, tradername, leaderboardID, portfolioID) values($1, $2, $3, $4, $5)`;
+            client.query(addTraderSQL, [TID, startingFund, name, 1, PortID], (err2, result2) => {
+                if (err2) {
+                    res.status(500, { error: err2 });
+                } else {
+                    let leaderboardID = req.body.leaderboardID;
+                    let updateLeaderboard = `UPDATE leaderboard SET numOfTraders = numOfTraders + 1 WHERE leaderboardID = $1`;
+                    client.query(updateLeaderboard, [leaderboardID], (err3, result3) => {
+                        if (err3) {
+                            res.status(500, { error: err3 });
+                        } else {
+                            res.send("Added trader + updated portfolio and leaderboard table");
+                        }
+                    });
+                }
+            });
+        }
+    });
 });
 
 //returns top 5 players on the leaderboard
@@ -196,7 +231,7 @@ router.get("/getTopPlayers", (req, res) => {
 
 });
 
-createPriceEntry = function(price) {
+createPriceEntry = function (price) {
     return new Promise((resolve, reject) => {
         let id = generateID();
         let date = new Date();
@@ -208,7 +243,7 @@ createPriceEntry = function(price) {
                 resolve(id);
             }
         });
-    }) 
+    })
 }
 
 //Below are for testing
@@ -280,7 +315,7 @@ router.get("/addRows", (req, res) => {
             } else {
                 console.log(result);
             }
-        });    
+        });
     })
     res.send();
 });
