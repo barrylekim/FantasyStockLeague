@@ -1,10 +1,11 @@
 const express = require("express");
 var router = express.Router();
 var pg = require("pg");
-var connectionString = "postgres://304group:rohan@localhost:5433/marketWatch";
+var connectionString = "postgres://304:rohan@localhost:5432/marketWatch";
 var client = new pg.Client(connectionString);
 client.connect();
 let startingFund = 30000;
+let IDMap = {};
 
 let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value INTEGER)`;
 let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(4) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(32), companyName VARCHAR(32), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
@@ -46,8 +47,6 @@ client.query(addLeaderboard, [leaderboardID, 0], (err, result) => {
 // add transaction row
 // update trader funds
 // check contains table and update if necessary
-// update isOn based on funds
-// add to contains if doesn't already exist
 router.post("/buy", (req, res) => {
     let TID = req.body.traderID;
     let CID = req.body.companyID;
@@ -182,8 +181,11 @@ router.post('/sell', (req, res) => {
     });
 });
 
-generateID = function () {
-    let id = Math.floor((Math.random() * 1000)).toString();
+generateID = function() {
+    let id = Math.floor((Math.random()*1000)).toString();
+    while (IDMap[id]) {
+        id = Math.floor((Math.random()*1000)).toString();
+    }
     return id;
 }
 
@@ -224,6 +226,18 @@ router.post("/addTrader", (req, res) => {
             });
         }
     });
+});
+
+// get trader info by id, useful to display portfolio on frontend
+router.get("/getTrader/:id", (req, res) => {
+    let getTrader = `SELECT * FROM trader WHERE traderID = $1`;
+    client.query(getTrader, req.params.id, (err, result) => {
+        if (err) {
+            res.status(500, {err: error});
+        } else {
+            res.status(200, {result: result[0]});
+        }
+    })
 });
 
 //returns top 5 players on the leaderboard
