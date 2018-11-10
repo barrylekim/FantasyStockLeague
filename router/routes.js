@@ -1,7 +1,7 @@
 const express = require("express");
 var router = express.Router();
 var pg = require("pg");
-var connectionString = "postgres://304:rohan@localhost:5432/marketWatch";
+var connectionString = "postgres://304:rohan@localhost:5433/marketWatch";
 var client = new pg.Client(connectionString);
 client.connect();
 let startingFund = 30000;
@@ -235,7 +235,18 @@ router.get("/getTrader/:id", (req, res) => {
         if (err) {
             res.status(500, { err: error });
         } else {
-            res.status(200, { result: result[0] });
+            let portfolioID = result.rows[0].portfolioID;
+            let getPortfolio = `SELECT companyID FROM contains WHERE portfolioID = $1`;
+            client.query(getPortfolio, [portfolioID], (err, companys) => {
+                if (err) {
+                    res.status(500, { err: error });
+                } else {
+                    res.status(200, { 
+                        trader: result.rows[0],
+                        portfolio: companys.rows
+                    });
+                }
+            });
         }
     })
 });
