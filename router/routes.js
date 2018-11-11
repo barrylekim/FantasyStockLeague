@@ -1,3 +1,4 @@
+
 const express = require("express");
 var router = express.Router();
 var pg = require("pg");
@@ -13,7 +14,7 @@ let leaderBoard = `CREATE TABLE IF NOT EXISTS leaderboard(leaderboardID VARCHAR(
 let trader = `CREATE TABLE IF NOT EXISTS trader(traderID VARCHAR(10) NOT NULL PRIMARY KEY, funds INTEGER, traderName VARCHAR(12) UNIQUE, leaderboardID VARCHAR(10) NOT NULL, portfolioID VARCHAR(10) NOT NULL, FOREIGN KEY (portfolioID) REFERENCES portfolio ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY (leaderboardID) REFERENCES leaderboard ON DELETE CASCADE ON UPDATE CASCADE)`;
 let portfolio = `CREATE TABLE IF NOT EXISTS portfolio(portfolioID VARCHAR(10) NOT NULL PRIMARY KEY)`;
 let watchList = `CREATE TABLE IF NOT EXISTS watchlist(watchlistID VARCHAR(10) NOT NULL PRIMARY KEY, traderID VARCHAR(10), FOREIGN KEY (traderID) REFERENCES trader ON DELETE SET NULL ON UPDATE CASCADE)`;
-let includes = `CREATE TABLE IF NOT EXISTS includes(watchlistID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, PRIMARY KEY (companyID, watchlistID), FOREIGN KEY (watchlistID) REFERENCES watchlist(watchlistID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
+let includes = `CREATE TABLE IF NOT EXISTS includes(watchlistID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, PRIMARY KEY (companyID, watchlistID), FOREIGN KEY (watchlistID) REFERENCES watchlist(watchlistID) ON UPDATE CASCADE, FOREIGN KEY (companyID) REFERENCES company(companyID) ON UPDATE CASCADE)`;
 let contains = `CREATE TABLE IF NOT EXISTS contains(portfolioID VARCHAR(10) NOT NULL, companyID CHAR(4), PRIMARY KEY (portfolioID, companyID), FOREIGN KEY (portfolioID) REFERENCES portfolio(portfolioID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
 let transaction = `CREATE TABLE IF NOT EXISTS transaction(transactionID VARCHAR(10) PRIMARY KEY, traderID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, priceID VARCHAR(10) NOT NULL, type BIT(1), sharesPurchased INTEGER, FOREIGN KEY (traderID) REFERENCES trader(traderID) ON DELETE NO ACTION ON UPDATE CASCADE, FOREIGN KEY (priceID) REFERENCES price(priceID) ON DELETE NO ACTION ON UPDATE CASCADE)`;
 
@@ -205,6 +206,30 @@ generateID = function () {
 
 //TODO
 router.post('/addToWatchList', (req, res) => {
+    let playerName = req.body.name;
+    let companyCode = req.body.CID;
+    let findWatchID = `SELECT traderID FROM trader WHERE tradername = $1`;
+    client.query(findWatchID, [playerName], (err1, result1) => {
+        if (err1) {
+            res.status(500, {error: err1});
+        } else {
+            let findWatchListID = `SELECT watchlistID FROM watchlist WHERE traderID = $1`;
+            client.query(findWatchListID, [result1.rows[0].traderid], (err1, result2) => {
+                if (err1) {
+                    res.status(500, {error: err1});
+                } else {
+                    let addToInclude = `INSERT INTO includes(watchlistID, companyID) values ($1, $2)`;
+                    client.query(addToInclude, [result2.rows[0].watchlistid, companyCode], (err1, result2) => {
+                        if (err1) {
+                            res.status(500, {error: err1});
+                        } else {
+                            res.send("done");
+                        }
+                    });
+                }
+            });
+        }
+    });
 
 });
 
@@ -217,6 +242,7 @@ router.post("/addTrader", (req, res) => {
     let name = req.body.name;
     let addPortfolioSQL = `INSERT INTO portfolio(portfolioID) values ($1)`
     let TID = generateID();
+    let WLID = generateID();
     let PortID = generateID();
     client.query(addPortfolioSQL, [PortID], (err1, result1) => {
         if (err1) {
@@ -233,7 +259,15 @@ router.post("/addTrader", (req, res) => {
                         if (err3) {
                             res.status(500).json({ error: err3 });
                         } else {
-                            res.send("Added trader + updated portfolio and leaderboard table");
+                            let addWatchList = `INSERT INTO watchlist(watchlistID, traderID) values ($1, $2)`;
+                            client.query(addWatchList, [WLID, TID], (err1, result1) => {
+                                if (err1) {
+                                    res.status(500, {error: err1});
+                                } else {
+                                    res.send("Added trader + updated portfolio and leaderboard table + watchlist yeee");
+                                }
+                            });
+
                         }
                     });
                 }
@@ -255,7 +289,7 @@ router.get("/getTrader/:id", (req, res) => {
                 if (err) {
                     res.status(500).json({ error: err });
                 } else {
-                    res.status(200).json({ 
+                    res.status(200).json({
                         trader: result.rows[0],
                         portfolio: companys.rows
                     });
@@ -355,7 +389,7 @@ router.get("/addRows", (req, res) => {
                 console.log(result);
             }
         });
-    })
+    });
 
     createPriceEntry(150).then((id1) => {
         client.query(addQuery, ["GOOG", 25, "Tech", "Google", id1], (err, result) => {
@@ -365,7 +399,26 @@ router.get("/addRows", (req, res) => {
                 console.log(result);
             }
         });
-    })
+    });
+
+    createPriceEntry(200).then((id2) => {
+        client.query(addQuery, ["VNET", 80, "Tech", "Vianet", id2], (err, result) => {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            }
+        });
+    });
+    createPriceEntry(250).then((id3) => {
+        client.query(addQuery, ["AMD", 160, "Tech", "Amd", id3], (err, result) => {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log(result);
+            }
+        });
+    });
     res.send();
 });
 
