@@ -146,11 +146,6 @@ router.post("/addTrader", (req, res) => {
 
 //returns top 5 players on the leaderboard
 router.get("/getTopPlayers", (req, res) => {
-
-});
-
-// get trader info by id, useful to display portfolio on frontend
-router.get("/getTrader/:id", (req, res) => {
     let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername funds FROM trader ORDER BY funds DESC`;
     client.query(getALLTradersSortedTopDownSQL, (err, result) => {
         if (err) {
@@ -168,6 +163,29 @@ router.get("/getTrader/:id", (req, res) => {
             res.send(arr);
         }
     });
+});
+
+// get trader info by id, useful to display portfolio on frontend
+router.get("/getTrader/:id", (req, res) => {
+    let getTrader = `SELECT * FROM trader WHERE traderID = $1`;
+    client.query(getTrader, req.params.id, (err, result) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        } else {
+            let portfolioID = result.rows[0].portfolioID;
+            let getPortfolio = `SELECT companyID FROM contains WHERE portfolioID = $1`;
+            client.query(getPortfolio, [portfolioID], (err, companys) => {
+                if (err) {
+                    res.status(500).json({ error: err });
+                } else {
+                    res.status(200).json({
+                        trader: result.rows[0],
+                        portfolio: companys.rows
+                    });
+                }
+            });
+        }
+    })
 });
 
 createPriceEntry = function (price) {
