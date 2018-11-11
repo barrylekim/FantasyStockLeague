@@ -17,7 +17,7 @@ Npm init
 
 TBD
 
-## Copyright & License
+## Copyright and License
 Copyright 2018 GitHub, Inc.
 
-Licensed under the [MIT License](URL_to_wiki)
+Licensed under the [MIT License](https://github.com/304MarketWatch/FantasyStockLeague/blob/master/LICENSE.txt)
