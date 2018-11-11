@@ -16,3 +16,8 @@ Npm init
 ## Documentation
 
 TBD
+
+# Copyright License
+Copyright 2017 GitHub, Inc.
+
+Licensed under the [MIT License](URL_to_wiki)
