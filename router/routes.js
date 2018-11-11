@@ -70,19 +70,19 @@ router.post('/addToWatchList', (req, res) => {
     let findWatchID = `SELECT traderID FROM trader WHERE tradername = $1`;
     client.query(findWatchID, [playerName], (err1, result1) => {
         if (err1) {
-            res.status(500, {error: err1});
+            res.status(500).json({error: err1});
         } else {
             let findWatchListID = `SELECT watchlistID FROM watchlist WHERE traderID = $1`;
             client.query(findWatchListID, [result1.rows[0].traderid], (err1, result2) => {
                 if (err1) {
-                    res.status(500, {error: err1});
+                    res.status(500).json({error: err1});
                 } else {
                     let addToInclude = `INSERT INTO includes(watchlistID, companyID) values ($1, $2)`;
                     client.query(addToInclude, [result2.rows[0].watchlistid, companyCode], (err1, result2) => {
                         if (err1) {
-                            res.status(500, {error: err1});
+                            res.status(500).json({error: err1});
                         } else {
-                            res.send("done");
+                            res.status(200).json({message: "done"});
                         }
                     });
                 }
@@ -135,6 +135,11 @@ router.post("/addTrader", (req, res) => {
     });
 });
 
+//returns top 5 players on the leaderboard
+router.get("/getTopPlayers", (req, res) => {
+
+});
+
 // get trader info by id, useful to display portfolio on frontend
 router.get("/getTrader/:id", (req, res) => {
     let getTrader = `SELECT * FROM trader WHERE traderID = $1`;
@@ -156,11 +161,6 @@ router.get("/getTrader/:id", (req, res) => {
             });
         }
     })
-});
-
-//returns top 5 players on the leaderboard
-router.get("/getTopPlayers", (req, res) => {
-
 });
 
 createPriceEntry = function (price) {
@@ -269,6 +269,7 @@ router.get("/addRows", (req, res) => {
             }
         });
     });
+
     createPriceEntry(250).then((id3) => {
         client.query(addQuery, ["AMD", 160, "Tech", "Amd", id3], (err, result) => {
             if (err) {
