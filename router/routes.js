@@ -145,8 +145,8 @@ router.get("/getTrader/:id", (req, res) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
-            let portfolioID = result.rows[0].portfolioID;
-            let getPortfolio = `SELECT companyID FROM contains WHERE portfolioID = $1`;
+            let portfolioID = result.rows[0].portfolioid;
+            let getPortfolio = `SELECT * FROM contains WHERE portfolioID = $1`;
             client.query(getPortfolio, [portfolioID], (err, companys) => {
                 if (err) {
                     res.status(500).json({ error: err });

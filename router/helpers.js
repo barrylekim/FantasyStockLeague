@@ -101,18 +101,20 @@ module.exports = {
         try {
             let join = `SELECT companyID FROM trader NATURAL JOIN contains`;
             let companys = await client.query(join);
+            console.log(companys.rows);
             if (type === 1) {
                 if (companys.rows.length === 0) {
                     let addRow = `INSERT INTO contains(portfolioID, companyID) values($1, $2)`;
                     await client.query(addRow, [portfolioID, CID]);
+                    return;
                 }
             } else {
                 if (companys.rows.length === 1) {
                     let deleteRow = `DELETE FROM contains WHERE portfolioID = $1 AND companyID = $2`;
                     await client.query(deleteRow, [portfolioID, CID]);
+                    return;
                 }
             }
-            return;
         } catch (err) {
             throw err;
         }
