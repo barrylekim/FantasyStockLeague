@@ -61,7 +61,6 @@ generateID = function () {
     return id;
 }
 
-//TODO
 router.post('/addToWatchList', (req, res) => {
     let playerName = req.body.name;
     let companyCode = req.body.CID;
@@ -89,8 +88,20 @@ router.post('/addToWatchList', (req, res) => {
     });
 
 });
+// findTrader pass the name and you will get the id
+router.get("/findTrader", (req, res) => {
+    let name = req.body.name;
+    let findname = `SELECT traderID FROM trader WHERE tradername = $1`
+    client.query(findname, [name], (err1, result1) => {
+        if (err1) {
+            res.status(500).json({ error: err1 });
+        } else {
+            res.send(result1.rows[0].traderid);
 
-//TODO
+        }
+    });
+});
+
 // add trader to leaderboard
 // update numofplayers on leaderboard table
 // create portfolio row and gave trader the same portfolio ID
