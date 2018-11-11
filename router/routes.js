@@ -4,43 +4,25 @@ var pg = require("pg");
 var connectionString = "postgres://304:rohan@localhost:5432/marketWatch";
 var client = new pg.Client(connectionString);
 client.connect();
+var helper = require("./helpers");
 let startingFund = 30000;
 let IDMap = {};
 
-let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value INTEGER)`;
-let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(4) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(32), companyName VARCHAR(32), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
-let leaderBoard = `CREATE TABLE IF NOT EXISTS leaderboard(leaderboardID VARCHAR(10) NOT NULL PRIMARY KEY, numOfTraders INTEGER)`;
-let trader = `CREATE TABLE IF NOT EXISTS trader(traderID VARCHAR(10) NOT NULL PRIMARY KEY, funds INTEGER, traderName VARCHAR(12) UNIQUE, leaderboardID VARCHAR(10) NOT NULL, portfolioID VARCHAR(10) NOT NULL, FOREIGN KEY (portfolioID) REFERENCES portfolio ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY (leaderboardID) REFERENCES leaderboard ON DELETE CASCADE ON UPDATE CASCADE)`;
-let portfolio = `CREATE TABLE IF NOT EXISTS portfolio(portfolioID VARCHAR(10) NOT NULL PRIMARY KEY)`;
-let watchList = `CREATE TABLE IF NOT EXISTS watchlist(watchlistID VARCHAR(10) NOT NULL PRIMARY KEY, traderID VARCHAR(10), FOREIGN KEY (traderID) REFERENCES trader ON DELETE SET NULL ON UPDATE CASCADE)`;
-let includes = `CREATE TABLE IF NOT EXISTS includes(watchlistID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, PRIMARY KEY (companyID, watchlistID), FOREIGN KEY (watchlistID) REFERENCES watchlist(watchlistID) ON UPDATE CASCADE, FOREIGN KEY (companyID) REFERENCES company(companyID) ON UPDATE CASCADE)`;
-let contains = `CREATE TABLE IF NOT EXISTS contains(portfolioID VARCHAR(10) NOT NULL, companyID CHAR(4), PRIMARY KEY (portfolioID, companyID), FOREIGN KEY (portfolioID) REFERENCES portfolio(portfolioID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
-let transaction = `CREATE TABLE IF NOT EXISTS transaction(transactionID VARCHAR(10) PRIMARY KEY, traderID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, priceID VARCHAR(10) NOT NULL, type BIT(1), sharesPurchased INTEGER, FOREIGN KEY (traderID) REFERENCES trader(traderID) ON DELETE NO ACTION ON UPDATE CASCADE, FOREIGN KEY (priceID) REFERENCES price(priceID) ON DELETE NO ACTION ON UPDATE CASCADE)`;
+helper.start();
 
-let arr = [price, company, leaderBoard, portfolio, trader, watchList, includes, contains, transaction];
-
-arr.forEach((query) => {
-    client.query(query, (err, result) => {
-        if (err) {
-            console.log(query + err);
-        } else {
-            console.log(result);
-        }
-    })
-});
-
-// TODO
-// Add a new leaderboard with 0 traders at first
-
-let leaderboardID = 1;
-let addLeaderboard = `INSERT INTO leaderboard(leaderboardID, numOfTraders) values ($1, $2)`
-client.query(addLeaderboard, [leaderboardID, 0], (err, result) => {
-    if (err) {
-        console.log(err.detail);
-    } else {
-        console.log(result);
-    }
-});
+// router.post("/buy", async (req, res) => {
+//     let TID = req.body.traderID;
+//     let CID = req.body.companyID;
+//     let numOfShares = req.body.numOfShares;
+//     let company = await helper.getCompanyByID(CID);
+//     if (company.rows.length === 0) {
+//         res.status(400).json({ error: "Invalid CompanyID"});
+//     } else {
+//         let priceID = company.rows[0].priceid;
+//         let price = helper.getValue(priceID);
+//         helper.addTransaction()
+//     }
+// });
 
 // given companyID and traderID
 // get price from company(priceID)

@@ -2,6 +2,8 @@ var pg = require("pg");
 var connectionString = "postgres://304:rohan@localhost:5432/marketWatch";
 var client = new pg.Client(connectionString);
 client.connect();
+const Http = new XMLHttpRequest();
+const url = "localhost:3005/addtrader";
 
 module.exports = {
     start: function() {
@@ -36,18 +38,23 @@ module.exports = {
                 console.log(result);
             }
         });
+        let names = ["rohan", "barry", "diego", "jason"];
+        names.forEach((name) => {
+            var data = new FormData();
+            data.append("name", name);
+            Http.open("POST", url, true);
+            Http.send(data);
+        });
     },
 
-    getCompanyByID: function(CID) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let findCompany = `SELECT * FROM company WHERE companyid = $1`;
-                let result = await client.query(findCompany, [CID]);
-                resolve(result);
-            } catch(err) {
-                reject(err);
-            }
-        });
+    getCompanyByID: async function(CID) {
+        try {
+            let findCompany = `SELECT * FROM company WHERE companyid = $1`;
+            let company = await client.query(findCompany, [CID]);
+            return company;
+        } catch (err) {
+            throw err;
+        }
     },
 
     addTransaction: function(TID, CID, numOfShares, company, type) {
@@ -65,16 +72,14 @@ module.exports = {
         });
     },
 
-    getValue: function(priceID) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let findPrice = `SELECT * FROM price WHERE priceid = $1`;
-                let price = await client.query(findPrice, [priceID]);    
-                resolve(price.rows[0].value);
-            } catch(err) {
-                reject(err);
-            }
-        });
+    getValue: async function(priceID) {
+        try {
+            let findPrice = `SELECT * FROM price WHERE priceid = $1`;
+            let price = await client.query(findPrice, [priceID]);
+            return price.rows[0].value;
+        } catch (err) {
+            throw err;
+        }
     },
 
     updateFunds: function(TID, value, numOfShares, type) {
