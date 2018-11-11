@@ -2,8 +2,6 @@ var pg = require("pg");
 var connectionString = "postgres://304:rohan@localhost:5432/marketWatch";
 var client = new pg.Client(connectionString);
 client.connect();
-const Http = new XMLHttpRequest();
-const url = "localhost:3005/addtrader";
 
 module.exports = {
     start: function() {
@@ -38,13 +36,6 @@ module.exports = {
                 console.log(result);
             }
         });
-        let names = ["rohan", "barry", "diego", "jason"];
-        names.forEach((name) => {
-            var data = new FormData();
-            data.append("name", name);
-            Http.open("POST", url, true);
-            Http.send(data);
-        });
     },
 
     getCompanyByID: async function(CID) {
@@ -57,19 +48,15 @@ module.exports = {
         }
     },
 
-    addTransaction: function(TID, CID, numOfShares, company, type) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let priceID = company.rows[0].priceid;
-                let TXID = generateID();
-                let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
-                await client.query(addTX, [TXID, TID, CID, priceID, type, numOfShares]);
-                resolve(priceID);
-            }
-            catch(err) {
-                reject(err);
-            }
-        });
+    addTransaction: async function(TID, CID, priceID, type, numOfShares) {
+        try {
+            let TXID = generateID();
+            let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
+            await client.query(addTX, [TXID, TID, CID, priceID, type, numOfShares]);
+            return;
+        } catch (err) {
+            throw err;
+        }
     },
 
     getValue: async function(priceID) {
@@ -82,43 +69,53 @@ module.exports = {
         }
     },
 
-    updateFunds: function(TID, value, numOfShares, type) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                if (type === 1) {
-                    let findFunds = `SELECT funds FROM trader WHERE traderID = $1`;
-                    let funds = await client.query(findFunds, [TID]);
-                    let amount = funds.rows[0].funds;
-                    amount -= (value * numOfShares);
-                    let updateFunds = `UPDATE trader SET funds=($1) WHERE traderID=($2)`;
-                    await client.query(updateFunds, [amount, TID]);
-                } else {
-                    let findFunds = `SELECT funds FROM trader WHERE traderID = $1`;
-                    let funds = await client.query(findFunds, [TID]);
-                    let amount = funds.rows[0].funds;
-                    amount += (value * numOfShares);
-                    let updateFunds = `UPDATE trader SET funds=($1) WHERE traderID=($2)`;
-                    await client.query(updateFunds, [amount, TID]);
-                }
-            } catch (err) {
-                reject(err);
+    updateFunds: async function(TID, value, numOfShares, type) {
+        try {
+            let findFunds = `SELECT funds FROM trader WHERE traderID = $1`;
+            let funds = await client.query(findFunds, [TID]);
+            let amount = funds.rows[0].funds;
+            if (type === 1) {
+                amount -= (value * numOfShares);
+            } else {
+                amount += (value * numOfShares);
             }
-        });
+            let updateFunds = `UPDATE trader SET funds=($1) WHERE traderID=($2)`;
+            await client.query(updateFunds, [amount, TID]);
+            return;
+        } catch (err) {
+            throw err;
+        }
     },
 
-    checkContains: function(portfolioID, CID) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                let join = `SELECT companyID FROM trader NATURAL JOIN contains`;
-                let companys = await client.query(join);
+    getPortfolioID: async function(TID) {
+        try {
+            let getPortID = `SELECT portfolioID FROM trader WHERE traderID = $1`;
+            let rows = await client.query(getPortID, [TID]);
+            let portfolioID = rows.rows[0].portfolioid;
+            return portfolioID;
+        } catch (err) {
+            throw err;
+        }
+    },
+
+    checkContains: async function(portfolioID, CID, type) {
+        try {
+            let join = `SELECT companyID FROM trader NATURAL JOIN contains`;
+            let companys = await client.query(join);
+            if (type === 1) {
                 if (companys.rows.length === 0) {
                     let addRow = `INSERT INTO contains(portfolioID, companyID) values($1, $2)`;
                     await client.query(addRow, [portfolioID, CID]);
                 }
-                resolve();
-            } catch {
-                reject();
+            } else {
+                if (companys.rows.length === 1) {
+                    let deleteRow = `DELETE FROM contains WHERE portfolioID = $1 AND companyID = $2`;
+                    await client.query(deleteRow, [portfolioID, CID]);
+                }
             }
-        });
+            return;
+        } catch (err) {
+            throw err;
+        }
     }
 }

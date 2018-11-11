@@ -1,180 +1,58 @@
 const express = require("express");
 var router = express.Router();
+var helper = require("./helpers");
+
 var pg = require("pg");
 var connectionString = "postgres://304:rohan@localhost:5432/marketWatch";
 var client = new pg.Client(connectionString);
 client.connect();
-var helper = require("./helpers");
 let startingFund = 30000;
 let IDMap = {};
 
 helper.start();
 
-// router.post("/buy", async (req, res) => {
-//     let TID = req.body.traderID;
-//     let CID = req.body.companyID;
-//     let numOfShares = req.body.numOfShares;
-//     let company = await helper.getCompanyByID(CID);
-//     if (company.rows.length === 0) {
-//         res.status(400).json({ error: "Invalid CompanyID"});
-//     } else {
-//         let priceID = company.rows[0].priceid;
-//         let price = helper.getValue(priceID);
-//         helper.addTransaction()
-//     }
-// });
-
-// given companyID and traderID
-// get price from company(priceID)
-// add transaction row
-// update trader funds
-// check contains table and update if necessary
-router.post("/buy", (req, res) => {
-    let TID = req.body.traderID;
-    let CID = req.body.companyID;
-    let numOfShares = req.body.numOfShares;
-    let findCompany = `SELECT * FROM company WHERE companyid = $1`;
-    client.query(findCompany, [CID], (err, company) => {
-        if (err) {
-            res.status(500).json({ error: err });
-        } else if (company.rows.length === 0) {
-            res.status(400).json( { error: "INVALID COMPANYID" } );
+router.post("/buy", async (req, res) => {
+    try {
+        let TID = req.body.traderID;
+        let CID = req.body.companyID;
+        let numOfShares = req.body.numOfShares;
+        let company = await helper.getCompanyByID(CID);
+        if (company.rows.length === 0) {
+            res.status(400).json({ error: "Invalid CompanyID"});
         } else {
             let priceID = company.rows[0].priceid;
-            let findPrice = `SELECT * FROM price WHERE priceid = $1`;
-            client.query(findPrice, [priceID], (err, price) => {
-                if (err) {
-                    res.status(500).json({ error: err });
-                } else {
-                    let row = price.rows[0];
-                    let value = row.value;
-                    let TXID = generateID();
-                    let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
-                    client.query(addTX, [TXID, TID, CID, priceID, 1, numOfShares], (err) => {
-                        if (err) {
-                            res.status(500).json({ error: err });
-                        } else {
-                            let findFunds = `SELECT funds FROM trader WHERE traderID = $1`;
-                            client.query(findFunds, [TID], (err, funds) => {
-                                if (err) {
-                                    res.status(500).json({ error: err });
-                                } else {
-                                    let amount = funds.rows[0].funds;
-                                    amount -= (value * numOfShares);
-                                    let updateFunds = `UPDATE trader SET funds=($1) WHERE traderID=($2)`;
-                                    client.query(updateFunds, [amount, TID], (err) => {
-                                        if (err) {
-                                            res.status(500).json({ error: err });
-                                        } else {
-                                            let getPortID = `SELECT portfolioID FROM trader WHERE traderID = $1`;
-                                            client.query(getPortID, [TID], (err, portfolioIDrows) => {
-                                                if (err) {
-                                                    res.status(500, { error: err });
-                                                } else {
-                                                    let portfolioID = portfolioIDrows.rows[0].portfolioid;
-                                                    let check = `SELECT companyID FROM contains WHERE portfolioID = $1`;
-                                                    client.query(check, [portfolioID], (err, companys) => {
-                                                        if (err) {
-                                                            res.status(500).json({ error: err });
-                                                        } else {
-                                                            if (companys.rows.length === 0) {
-                                                                let addRow = `INSERT INTO contains(portfolioID, companyID) values($1, $2)`;
-                                                                client.query(addRow, [portfolioID, CID], (err) => {
-                                                                    if (err) {
-                                                                        res.status(500).json({ error: err });
-                                                                    } else {
-                                                                        res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
-                                                                    }
-                                                                });
-                                                            }
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+            let price = await helper.getValue(priceID);
+            await helper.addTransaction(TID, CID, priceID, 1, numOfShares);
+            await helper.updateFunds(TID, price, numOfShares, 1);
+            let portfolioID = await helper.getPortfolioID(TID);
+            await helper.checkContains(portfolioID, CID, 1);
+            res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
         }
-    });
+    } catch (err) {
+        res.status(500).json({ error: err });
+    }
 });
 
-router.post('/sell', (req, res) => {
-    let TID = req.body.traderID;
-    let CID = req.body.companyID;
-    let numOfShares = req.body.numOfShares;
-    let findCompany = `SELECT * FROM company WHERE companyid = $1`;
-    client.query(findCompany, [CID], (err, company) => {
-        if (err) {
-            res.status(500).json({ error: err });
-        } else if (company.rows.length === 0) {
-            res.status(400).json( { error: "INVALID COMPANYID" } );
+router.post("/sell", async (req, res) => {
+    try {
+        let TID = req.body.traderID;
+        let CID = req.body.companyID;
+        let numOfShares = req.body.numOfShares;
+        let company = await helper.getCompanyByID(CID);
+        if (company.rows.length === 0) {
+            res.status(400).json({ error: "Invalid CompanyID"});
         } else {
             let priceID = company.rows[0].priceid;
-            let findPrice = `SELECT * FROM price WHERE priceid = $1`;
-            client.query(findPrice, [priceID], (err, price) => {
-                if (err) {
-                    res.status(500).json({ error: err });
-                } else {
-                    let row = price.rows[0];
-                    let value = row.value;
-                    let TXID = generateID();
-                    let addTX = `INSERT INTO transaction(transactionID, traderID, companyID, priceID, type, sharesPurchased) values($1, $2, $3, $4, $5, $6)`;
-                    client.query(addTX, [TXID, TID, CID, priceID, 0, numOfShares], (err) => {
-                        if (err) {
-                            res.status(500).json({ error: err });
-                        } else {
-                            let findFunds = `SELECT funds FROM trader WHERE traderID = $1`;
-                            client.query(findFunds, [TID], (err, funds) => {
-                                if (err) {
-                                    res.status(500).json({ error: err });
-                                } else {
-                                    let amount = funds.rows[0].funds;
-                                    amount += (value * numOfShares);
-                                    let updateFunds = `UPDATE trader SET funds=($1) WHERE traderID=($2)`;
-                                    client.query(updateFunds, [amount, TID], (err) => {
-                                        if (err) {
-                                            res.status(500).json({ error: err });
-                                        } else {
-                                            let getPortID = `SELECT portfolioID FROM trader WHERE traderID = $1`;
-                                            client.query(getPortID, [TID], (err, portfolioIDrows) => {
-                                                if (err) {
-                                                    res.status(500, { error: err });
-                                                } else {
-                                                    let portfolioID = portfolioIDrows.rows[0].portfolioid;
-                                                    let check = `SELECT companyID FROM contains WHERE portfolioID = $1`;
-                                                    client.query(check, [portfolioID], (err, companys) => {
-                                                        if (err) {
-                                                            res.status(500).json({ error: err });
-                                                        } else if (companys.rows.length > 0) {
-                                                            let deleteRow = `DELETE FROM contains WHERE portfolioID = $1 AND companyID = $2`;
-                                                            client.query(deleteRow, [portfolioID, CID], (err) => {
-                                                                if (err) {
-                                                                    res.status(500).json({ error: err });
-                                                                } else {
-                                                                    res.status(200).json({ message: numOfShares + " of " + CID + " sold" });
-                                                                }
-                                                            });
-                                                        } else {
-                                                            res.status(200).json({ message: numOfShares + " of " + CID + " sold" });
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+            let price = await helper.getValue(priceID);
+            await helper.addTransaction(TID, CID, priceID, 0, numOfShares);
+            await helper.updateFunds(TID, price, numOfShares, 0);
+            let portfolioID = await helper.getPortfolioID(TID);
+            await helper.checkContains(portfolioID, CID, 0);
+            res.status(200).json({ message: numOfShares + " of " + CID + " sold" });
         }
-    });
+    } catch (err) {
+        res.status(500).json({ error: err });
+    }
 });
 
 generateID = function () {
