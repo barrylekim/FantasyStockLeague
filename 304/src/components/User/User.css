@@ -1,0 +1,21 @@
+.UserHead{
+    display: block;
+    margin-bottom: 4px;
+    color: #6a6a6c;
+    font-size: .64286rem;
+    font-weight: 400;
+    letter-spacing: .025em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.User{
+    position: fixed;
+    top: 50px; 
+    left: 10px; 
+}
+.Name{
+    font-size: 20px;
+    font-weight: bold;
+}
