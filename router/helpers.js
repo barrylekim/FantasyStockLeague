@@ -1,6 +1,5 @@
 var pg = require("pg");
-var connectionString = process.env.CONNECTIONSTR;
-var client = new pg.Client(connectionString);
+var client = new pg.Client(process.env.CONNECTIONSTR);
 client.connect();
 
 module.exports = {
