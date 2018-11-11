@@ -1,9 +1,8 @@
 const express = require("express");
 var router = express.Router();
 var helper = require("./helpers");
-
 var pg = require("pg");
-var connectionString = "postgres://304:rohan@localhost:5432/marketWatch";
+var connectionString = process.env.CONNECTIONSTR;
 var client = new pg.Client(connectionString);
 client.connect();
 let startingFund = 30000;
