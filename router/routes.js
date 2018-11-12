@@ -1,8 +1,6 @@
 const express = require("express");
 var router = express.Router();
 var helper = require("./helpers");
-var checkAuth = require("../middleware/checkAuth");
-const jwt = require("jsonwebtoken");
 var pg = require("pg");
 var client = new pg.Client(process.env.CONNECTIONSTR);
 client.connect();
@@ -121,7 +119,6 @@ router.get("/findTrader", (req, res) => {
             res.status(500).json({ error: err1 });
         } else {
             res.send(result1.rows[0].traderid);
-
         }
     });
 });
