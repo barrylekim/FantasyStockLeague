@@ -143,14 +143,6 @@ module.exports = {
             priceid.forEach(async (x) => {
                 await eachValue.push(client.query(findVal, [x]));
             });
-            // console.log(eachValue);
-            /*   (err, result) => {
-                 if (err) {
-                     res.status(500).json({error: err});
-                 } else {
-                     eachValue.push(result.rows[0].value);
-                 }
-             });*/
             Promise.all(eachValue).then((val) => {
                 let result = [];
                 val.forEach((x) => {
