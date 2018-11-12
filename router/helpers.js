@@ -123,7 +123,8 @@ module.exports = {
     getAPI: function(company) {
         return new Promise(function(resolve, reject) {
           request({
-            url: "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + company + "&interval=5min&apikey=G4NS6IR5ZRJZRI6O",
+            url: "https://api.iextrading.com/1.0/stock/" + company + "/chart/date/20181016?chartInterval=30",
+            //url: "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + company + "&interval=5min&apikey=E9WND7ACGHFTZ2TG",
             method: 'GET'
           },function(err, response, body) {
             if (err) {

@@ -9,27 +9,36 @@ let IDMap = {};
 
 helper.start();
 
-router.get("/init", (req, res) => {
-    let arr = ["AAPL", "GOOG", "AMZN", "MSFT", "NFLX", "TWTR", "FB", "DOW J", "SBUX", "NKE"];
-    let names = ["Apple", "Google", "Amazon", "Microsoft", "Netflix", "Twitter", "Facebook", "Dow Jones", "Starbucks", "Nike"];
-    let industries = ["techonology", "techbology", "technology", "technology", "entertainment", "Social Media", "Social Media", "Finance", "Coffee shop", "Sports"];
-    for (var i = 0; i < arr.length; i++) {
-        helper.getAPI().then((result) => {
-            let price = JSON.parse(result)["Time Series (Daily)"]["2018-11-09"]["1. open"];
-            let volume = JSON.parse(result)["Time Series (Daily)"]["2018-11-09"]["5. volume"];
-            createPriceEntry(price).then((id) => {
-                let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-                client.query(addQuery, [arr[i], volume, industries[i], names[i], id], (err, result) => {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log(result);
-                    }
+router.get("/init", async (req, res) => {
+    let arr = ["AAPL", "GOOG", "AMZN", "MSFT", "NFLX", "GS", "SBUX", "NKE"];
+    let names = ["Apple", "Google", "Amazon", "Microsoft", "Goldman Sachs", "Netflix", "Starbucks", "Nike"];
+    let industries = ["techonology", "technology", "technology", "technology", "entertainment", "Finance", "Coffee shop", "Sports"];
+    let promises = [];
+    for (let i = 0; i < arr.length; i++) {
+        let find = `SELECT * from company WHERE companyid = $1`
+        client.query(find, [arr[i]], (err, res) => {
+            if (res.rows.length === 0) {
+                let promise = helper.getAPI(arr[i]).then((result) => {
+                    let json = JSON.parse(result)[0];
+                    let price = parseInt(json.average);
+                    let volume = parseInt(json.volume);
+                    createPriceEntry(price).then((id) => {
+                        let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+                        client.query(addQuery, [arr[i], volume, industries[i], names[i], id], (err, result) => {
+                            if (err) {
+                                console.log(err);
+                            }
+                        });
+                    });
                 });
-            });
+                promises.push(promise);
+            }
         });
     }
-})
+    Promise.all(promises).then(() => {
+        res.send("added");
+    });
+});
 
 router.post("/buy", async (req, res) => {
     try {
