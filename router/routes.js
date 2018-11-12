@@ -189,7 +189,7 @@ router.get("/getTopPlayers", (req, res) => {
 // get trader info by id, useful to display portfolio on frontend
 router.get("/getTrader/:id", (req, res) => {
     let getTrader = `SELECT * FROM trader WHERE traderID = $1`;
-    client.query(getTrader, req.params.id, (err, result) => {
+    client.query(getTrader, [req.params.id], (err, result) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
