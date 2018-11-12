@@ -14,7 +14,7 @@ Provide name of company, ID of trader making the purchase, and number of shares 
 {
     "companyID": "stock symbol",
     "traderID": "trader's ID",
-    "numOfShares: "number of shares"
+    "numOfShares": "number of shares"
 }
 ```
 
@@ -24,7 +24,7 @@ Provide name of company, ID of trader making the purchase, and number of shares 
 {
     "companyID": "AAPL",
     "traderID": "717",
-    "numOfShares: "20"
+    "numOfShares": "20"
 }
 ```
 
