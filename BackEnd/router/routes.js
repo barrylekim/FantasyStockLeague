@@ -140,28 +140,29 @@ router.post("/addTrader", (req, res) => {
     let name = req.body.name;
     let addPortfolioSQL = `INSERT INTO portfolio(portfolioID) values ($1)`
     let TID = generateID();
+    let WLID = generateID();
     let PortID = generateID();
     client.query(addPortfolioSQL, [PortID], (err1, result1) => {
         if (err1) {
-            res.status(500, { error: err1 });
+            res.status(500).json({ error: err1 });
         } else {
             let addTraderSQL = `INSERT INTO trader(traderID, funds, tradername, leaderboardID, portfolioID) values($1, $2, $3, $4, $5)`;
             client.query(addTraderSQL, [TID, startingFund, name, 1, PortID], (err2, result2) => {
                 if (err2) {
-                    res.status(500, { error: err2 });
+                    res.status(500).json({ error: err2 });
                 } else {
                     let leaderboardID = 1;
                     let findNumOfTraders = `SELECT numOfTraders FROM leaderBoard where leaderboardID = $1`;
                     client.query(findNumOfTraders, [1], (err3, result) => {
                         if (err3) {
-                            res.status(500, { error: err3 });
+                            res.status(500).json({ error: err3 });
                         } else {
                             let actualNumOfTraders = result.rows[0].numoftraders;
                             actualNumOfTraders = actualNumOfTraders + 1;
                             let updateLeaderboard = `UPDATE leaderboard SET numOfTraders = ($1) WHERE leaderboardID = $2`;
                             client.query(updateLeaderboard, [actualNumOfTraders, leaderboardID], (err4, result3) => {
                                 if (err3) {
-                                    res.status(500, { error: err4 });
+                                    res.status(500).json({ error: err4 });
                                 } else {
                                     let addWatchList = `INSERT INTO watchlist(watchlistID, traderID) values ($1, $2)`;
                                     client.query(addWatchList, [WLID, TID], (err1, result1) => {
@@ -181,7 +182,7 @@ router.post("/addTrader", (req, res) => {
     });
 });
 
-//returns top 5 players on the leaderboard
+//returns top 5 players on the leaderboard, does not work because it looks at funds
 router.get("/getTopPlayers", (req, res) => {
     let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername, funds FROM trader ORDER BY funds DESC`;
     client.query(getALLTradersSortedTopDownSQL, (err, result) => {
@@ -201,6 +202,130 @@ router.get("/getTopPlayers", (req, res) => {
         }
     });
 });
+// Returns an array of all player names, you can maybe call this one and pass it to netbuy and netsell to get the top 5 players
+router.get("/getAllPlayers", (req, res) => {
+    let getAllTraders = `SELECT tradername FROM trader`;
+    let traderArr = [];
+    client.query(getAllTraders, (err, result) => {
+        if (err) {
+            console.log("getall" + err);
+        } else {
+            result.rows.forEach((x) => {
+                traderArr.push(x.tradername);
+            });
+            res.send(traderArr);
+        }
+    });
+});
+
+// To get networth call netBuy and then subtract netSell, netBuy is the value of (all buy transactions + funds), netSell is the value of (all sell transactions)
+router.get("/netSell", async (req, res) => {
+    let name = req.body.name;
+    let sellTransactions = [];
+    let amountofsharesSell = [];
+    let priceidsSell = [];
+    let findTraderId = `SELECT traderID FROM trader WHERE tradername = $1`;
+    client.query(findTraderId, [name], (err, result1) => {
+        if (err) {
+            console.log(findTraderId + err);
+        } else {
+            let findTransactions = `SELECT transactionID, type, sharesPurchased FROM transaction WHERE traderID = $1`;
+            client.query(findTransactions, [result1.rows[0].traderid], (err, result2) => {
+                if (err) {
+                    console.log("find sellTransactions" + err);
+                } else {
+                    for (let key in result2.rows) {
+                     if (result2.rows[key].type === '0') {
+                            sellTransactions.push(result2.rows[key].transactionid);
+                        }
+                    }
+                    let findPriceId = `SELECT priceID, sharesPurchased FROM transaction WHERE transactionID = ANY($1)`;
+                    client.query(findPriceId, [sellTransactions], (err, result3) => {
+                        if (err) {
+                            res.status(500).json({error: err});
+                        } else {
+                            for (let key in result3.rows) {
+                                priceidsSell.push(result3.rows[key].priceid);
+                                amountofsharesSell.push(result3.rows[key].sharespurchased);
+                            }
+                            let worth = helper.getPriceIds(priceidsSell, amountofsharesSell);
+                            Promise.all([worth]).then((x) => {
+                                let stockWorth = JSON.stringify(x);
+                                let stockWorth1 = stockWorth.replace("[", "");
+                                let stockWorth2 = stockWorth1.replace("]", "");
+                                let findFunds = `SELECT funds FROM trader WHERE tradername = $1`;
+                                client.query(findFunds, [name], (err, result4) => {
+                                    if (err) {
+                                        res.status(500).json({ error: err });
+                                    } else {
+                                        let worth = Number(stockWorth2);
+                                        res.send(worth.toString());
+                                    }
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get("/netBuy", async (req, res) => {
+        let name = req.body.name;
+        let buyTransactions = [];
+        let amountofsharesBuy = [];
+        let priceidsBuy = [];
+        let findTraderId = `SELECT traderID FROM trader WHERE tradername = $1`;
+        client.query(findTraderId, [name], (err, result1) => {
+            if (err) {
+                console.log(findTraderId + err);
+            } else {
+                let findTransactions = `SELECT transactionID, type, sharesPurchased FROM transaction WHERE traderID = $1`;
+                client.query(findTransactions, [result1.rows[0].traderid], (err, result2) => {
+                    if (err) {
+                        console.log("find buyTransactions" + err);
+                    } else {
+                        for (let key in result2.rows) {
+                            if (result2.rows[key].type === '1') {
+                                buyTransactions.push(result2.rows[key].transactionid);
+                            }
+                        }
+                        let findPriceId = `SELECT priceID, sharesPurchased FROM transaction WHERE transactionID = ANY($1)`;
+                        client.query(findPriceId, [buyTransactions], (err, result3) => {
+                            if (err) {
+                                res.status(500).json({error: err});
+                            } else {
+                                for (let key in result3.rows) {
+                                    priceidsBuy.push(result3.rows[key].priceid);
+                                    amountofsharesBuy.push(result3.rows[key].sharespurchased);
+                                }
+                                let worth = helper.getPriceIds(priceidsBuy, amountofsharesBuy);
+                                Promise.all([worth]).then((x) => {
+                                    let stockWorth = JSON.stringify(x);
+                                    let stockWorth1 = stockWorth.replace("[", "");
+                                    let stockWorth2 = stockWorth1.replace("]", "");
+                                    let findFunds = `SELECT funds FROM trader WHERE tradername = $1`;
+                                    client.query(findFunds, [name], (err, result4) => {
+                                        if (err) {
+                                            res.status(500).json({ error: err });
+                                        } else {
+                                            let fundsNum = result4.rows[0].funds.toString();
+                                            let fundsNum2 = fundsNum.replace("$", "");
+                                            let fundsNum3 = fundsNum2.replace(",", "");
+                                            let fundsNum4 = fundsNum3.replace(".", "");
+                                            let worth = Number(stockWorth2) + (Number(fundsNum4)/100);
+                                            res.send(worth.toString());
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
 
 // get trader info by id, useful to display portfolio on frontend
 router.get("/getTrader/:id", (req, res) => {
