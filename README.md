@@ -12,7 +12,7 @@ The application will show how users rank against each other based on their inves
 ##### Node version - `latest`
 ##### Npm version - `latest`
 
-Npm init
+Run `npm init` to start the project.
 
 ## Documentation
 
