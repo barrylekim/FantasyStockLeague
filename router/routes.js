@@ -174,7 +174,7 @@ router.post("/addTrader", (req, res) => {
 
 //returns top 5 players on the leaderboard
 router.get("/getTopPlayers", (req, res) => {
-    let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername funds FROM trader ORDER BY funds DESC`;
+    let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername, funds FROM trader ORDER BY funds DESC`;
     client.query(getALLTradersSortedTopDownSQL, (err, result) => {
         if (err) {
             console.log(getALLTradersSortedTopDownSQL + err);
