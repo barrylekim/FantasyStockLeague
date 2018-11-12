@@ -1,73 +1,51 @@
-**StockWatch API**
-----
-Backend API for StockWatch - A fantasy stock league. 
+# Buy Stocks
 
-* **URL**
+Purchase x number of shares of a given company for the specified trader.
 
-  <http://localhost:3005/buy>
+**URL** : `http://localhost:3005/buy`
 
-* **Method:**
-  
-  <_`POST`_>
+**Method** : `POST`
 
-* **Data Params**
+**Data constraints**
 
-  <_traderID, companyID, numOfShares_>
+Provide name of company, ID of trader making the purchase, and number of shares to be purchased.
 
-* **Success Response:**
+```json
+{
+    "companyID": "stock symbol",
+    "traderID": "trader's ID",
+    "numOfShares: "number of shares"
+}
+```
 
-  * **Code:** 200 <br />
-    **Content:** `{ message : x shares of <companyID> purchased }`
- 
-* **Error Response:**
+**Data example** All fields must be sent.
 
-  * **Code:** 500 Internal Server Error <br />
-    **Content:** `{ error : Server Error }`
+```json
+{
+    "companyID": "AAPL",
+    "traderID": "717",
+    "numOfShares: "20"
+}
+```
 
-* **Sample Call:**
+## Success Response
 
-  <_$.ajax({
-      url: "http://localhost:3005/buy",
-      dataType: "json",
-      data: {
-        "companyID": "AAPL",
-        "traderID": "717",
-        "numOfShares": "20"
-      },
-      type: "POST"
-    });_>
-    
-* **URL**
+**Condition** : If everything is OK and stock purchase was successful.
 
-  <http://localhost:3005/sell>
+**Code** : `200 OK`
 
-* **Method:**
-  
-  <_`POST`_>
+**Content example**
 
-* **Data Params**
+```json
+{
+    "message": "x shares of <companyID> purchased"
+}
+```
 
-  <_traderID, companyID, numOfShares_>
+## Error Responses
 
-* **Success Response:**
+**Condition** : If req body is missing information or invalid.
 
-  * **Code:** 200 <br />
-    **Content:** `{ message : x shares of <companyID> sold }`
- 
-* **Error Response:**
+**Code** : `500 Internal Server Error`
 
-  * **Code:** 500 Internal Server Error <br />
-    **Content:** `{ error : Server Error }`
-
-* **Sample Call:**
-
-  <_$.ajax({
-      url: "http://localhost:3005/sell",
-      dataType: "json",
-      data: {
-        "companyID": "GOOG",
-        "traderID": "717",
-        "numOfShares": "50"
-      },
-      type: "POST"
-    });_>
+**Content** : `{error: error message}`
