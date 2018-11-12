@@ -120,6 +120,21 @@ module.exports = {
         }
     },
 
+    createPriceEntry = function (price) {
+        return new Promise((resolve, reject) => {
+            let id = generateID();
+            let date = new Date();
+            let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
+            client.query(addPrice, [id, date.toString(), price], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(id);
+                }
+            });
+        })
+    },
+
     getAPI: function(company) {
         return new Promise(function(resolve, reject) {
           request({

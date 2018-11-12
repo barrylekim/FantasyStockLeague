@@ -22,7 +22,7 @@ router.get("/init", async (req, res) => {
                     let json = JSON.parse(result)[0];
                     let price = parseInt(json.average);
                     let volume = parseInt(json.volume);
-                    createPriceEntry(price).then((id) => {
+                    helper.createPriceEntry(price).then((id) => {
                         let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
                         client.query(addQuery, [arr[i], volume, industries[i], names[i], id], (err, result) => {
                             if (err) {
@@ -225,21 +225,6 @@ router.get("/getTrader/:id", (req, res) => {
     })
 });
 
-createPriceEntry = function (price) {
-    return new Promise((resolve, reject) => {
-        let id = generateID();
-        let date = new Date();
-        let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
-        client.query(addPrice, [id, date.toString(), price], (err, result) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(id);
-            }
-        });
-    })
-}
-
 //Below are for testing
 
 router.get("/getTraders", (req, res) => {
@@ -302,7 +287,7 @@ router.get("/getCompany", (req, res) => {
 router.get("/addRows", (req, res) => {
     let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
 
-    createPriceEntry(58).then((id) => {
+    helper.createPriceEntry(58).then((id) => {
         client.query(addQuery, ["AAPL", 50, "Tech", "Apple", id], (err, result) => {
             if (err) {
                 console.log(err);
@@ -312,7 +297,7 @@ router.get("/addRows", (req, res) => {
         });
     });
 
-    createPriceEntry(150).then((id1) => {
+    helper.createPriceEntry(150).then((id1) => {
         client.query(addQuery, ["GOOG", 25, "Tech", "Google", id1], (err, result) => {
             if (err) {
                 console.log(err);
@@ -322,7 +307,7 @@ router.get("/addRows", (req, res) => {
         });
     });
 
-    createPriceEntry(200).then((id2) => {
+    helper.createPriceEntry(200).then((id2) => {
         client.query(addQuery, ["VNET", 80, "Tech", "Vianet", id2], (err, result) => {
             if (err) {
                 console.log(err);
@@ -332,7 +317,7 @@ router.get("/addRows", (req, res) => {
         });
     });
 
-    createPriceEntry(250).then((id3) => {
+    helper.createPriceEntry(250).then((id3) => {
         client.query(addQuery, ["AMD", 160, "Tech", "Amd", id3], (err, result) => {
             if (err) {
                 console.log(err);
