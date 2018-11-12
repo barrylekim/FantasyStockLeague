@@ -30,7 +30,7 @@ Provide name of company, ID of trader making the sale, and number of shares to b
 
 ## Success Response
 
-**Condition** : If everything is OK and stock purchase was successful.
+**Condition** : If everything is OK and stock sale was successful.
 
 **Code** : `200 OK`
 
