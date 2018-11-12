@@ -134,34 +134,5 @@ module.exports = {
             }
           });
         })
-    },
-
-    getPriceIds: function (priceid, amountofshares) {
-        return new Promise(function (resolve, reject) {
-            let findVal = `SELECT value, priceID FROM price WHERE priceID = $1`;
-            let eachValue = [];
-            priceid.forEach(async (x) => {
-                await eachValue.push(client.query(findVal, [x]));
-            });
-            // console.log(eachValue);
-            /*   (err, result) => {
-                 if (err) {
-                     res.status(500).json({error: err});
-                 } else {
-                     eachValue.push(result.rows[0].value);
-                 }
-             });*/
-            Promise.all(eachValue).then((val) => {
-                let result = [];
-                val.forEach((x) => {
-                    result.push(x.rows[0].value);
-                });
-                let worth = result.reduce(function (r, a, i) {
-                    return r + a * amountofshares[i]
-                }, 0);
-                return resolve(worth);
-            });
-        });
-    },
-
+      },
 }
