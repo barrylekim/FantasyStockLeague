@@ -40,7 +40,7 @@ router.post("/buy", async (req, res) => {
         let numOfShares = req.body.numOfShares;
         let company = await helper.getCompanyByID(CID);
         if (company.rows.length === 0) {
-            res.status(400).json({ error: "Invalid CompanyID"});
+            res.status(400).json({ error: "Invalid CompanyID" });
         } else {
             let priceID = company.rows[0].priceid;
             let price = await helper.getValue(priceID);
@@ -62,7 +62,7 @@ router.post("/sell", async (req, res) => {
         let numOfShares = req.body.numOfShares;
         let company = await helper.getCompanyByID(CID);
         if (company.rows.length === 0) {
-            res.status(400).json({ error: "Invalid CompanyID"});
+            res.status(400).json({ error: "Invalid CompanyID" });
         } else {
             let priceID = company.rows[0].priceid;
             let price = await helper.getValue(priceID);
@@ -85,26 +85,25 @@ generateID = function () {
     return id;
 }
 
-//TODO
 router.post('/addToWatchList', (req, res) => {
     let playerName = req.body.name;
     let companyCode = req.body.CID;
     let findWatchID = `SELECT traderID FROM trader WHERE tradername = $1`;
     client.query(findWatchID, [playerName], (err1, result1) => {
         if (err1) {
-            res.status(500).json({error: err1});
+            res.status(500).json({ error: err1 });
         } else {
             let findWatchListID = `SELECT watchlistID FROM watchlist WHERE traderID = $1`;
             client.query(findWatchListID, [result1.rows[0].traderid], (err1, result2) => {
                 if (err1) {
-                    res.status(500).json({error: err1});
+                    res.status(500).json({ error: err1 });
                 } else {
                     let addToInclude = `INSERT INTO includes(watchlistID, companyID) values ($1, $2)`;
                     client.query(addToInclude, [result2.rows[0].watchlistid, companyCode], (err1, result2) => {
                         if (err1) {
-                            res.status(500).json({error: err1});
+                            res.status(500).json({ error: err1 });
                         } else {
-                            res.status(200).json({message: "done"});
+                            res.status(200).json({ message: "done" });
                         }
                     });
                 }
@@ -113,8 +112,20 @@ router.post('/addToWatchList', (req, res) => {
     });
 
 });
+// findTrader pass the name and you will get the id
+router.get("/findTrader", (req, res) => {
+    let name = req.body.name;
+    let findname = `SELECT traderID FROM trader WHERE tradername = $1`
+    client.query(findname, [name], (err1, result1) => {
+        if (err1) {
+            res.status(500).json({ error: err1 });
+        } else {
+            res.send(result1.rows[0].traderid);
 
-//TODO
+        }
+    });
+});
+
 // add trader to leaderboard
 // update numofplayers on leaderboard table
 // create portfolio row and gave trader the same portfolio ID
@@ -123,29 +134,30 @@ router.post("/addTrader", (req, res) => {
     let name = req.body.name;
     let addPortfolioSQL = `INSERT INTO portfolio(portfolioID) values ($1)`
     let TID = generateID();
-    let WLID = generateID();
     let PortID = generateID();
     client.query(addPortfolioSQL, [PortID], (err1, result1) => {
         if (err1) {
-            res.status(500).json({ error: err1 });
+            res.status(500, { error: err1 });
         } else {
             let addTraderSQL = `INSERT INTO trader(traderID, funds, tradername, leaderboardID, portfolioID) values($1, $2, $3, $4, $5)`;
             client.query(addTraderSQL, [TID, startingFund, name, 1, PortID], (err2, result2) => {
                 if (err2) {
-                    res.status(500).json({ error: err2 });
+                    res.status(500, { error: err2 });
                 } else {
-                    let leaderboardID = req.body.leaderboardID;
-                    let updateLeaderboard = `UPDATE leaderboard SET numOfTraders = numOfTraders + 1 WHERE leaderboardID = $1`;
-                    client.query(updateLeaderboard, [leaderboardID], (err3, result3) => {
+                    let leaderboardID = 1;
+                    let findNumOfTraders = `SELECT numOfTraders FROM leaderBoard where leaderboardID = $1`;
+                    client.query(findNumOfTraders, [1], (err3, result) => {
                         if (err3) {
-                            res.status(500).json({ error: err3 });
+                            res.status(500, { error: err3 });
                         } else {
-                            let addWatchList = `INSERT INTO watchlist(watchlistID, traderID) values ($1, $2)`;
-                            client.query(addWatchList, [WLID, TID], (err1, result1) => {
-                                if (err1) {
-                                    res.status(500).json({error: err1});
+                            let actualNumOfTraders = result.rows[0].numoftraders;
+                            actualNumOfTraders = actualNumOfTraders + 1;
+                            let updateLeaderboard = `UPDATE leaderboard SET numOfTraders = ($1) WHERE leaderboardID = $2`;
+                            client.query(updateLeaderboard, [actualNumOfTraders, leaderboardID], (err4, result3) => {
+                                if (err3) {
+                                    res.status(500, { error: err4 });
                                 } else {
-                                    res.send("Added trader + updated portfolio and leaderboard table + watchlist yeee");
+                                    res.send("Added trader + updated portfolio and leaderboard table");
                                 }
                             });
                         }
@@ -158,13 +170,29 @@ router.post("/addTrader", (req, res) => {
 
 //returns top 5 players on the leaderboard
 router.get("/getTopPlayers", (req, res) => {
-
+    let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername funds FROM trader ORDER BY funds DESC`;
+    client.query(getALLTradersSortedTopDownSQL, (err, result) => {
+        if (err) {
+            console.log(getALLTradersSortedTopDownSQL + err);
+        } else {
+            // console.log(result);
+            let arr = [];
+            var index = 0;
+            var length = result.rows.length;
+            while (index < 10 && length > 0) {
+                arr.push(result.rows[index]);
+                index++;
+                length--;
+            }
+            res.send(arr);
+        }
+    });
 });
 
 // get trader info by id, useful to display portfolio on frontend
 router.get("/getTrader/:id", (req, res) => {
     let getTrader = `SELECT * FROM trader WHERE traderID = $1`;
-    client.query(getTrader, [req.params.id], (err, result) => {
+    client.query(getTrader, req.params.id, (err, result) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
