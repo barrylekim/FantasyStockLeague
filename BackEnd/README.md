@@ -5,7 +5,7 @@ Backend API for StockWatch - A fantasy stock league.
 * **URL**
 
   <http://localhost:3005/buy>
-C:\Users\Jason\desktop\CPSC 304\FantasyStockLeague\BackEnd\package.json
+
 * **Method:**
   
   <_`POST`_>
@@ -21,13 +21,18 @@ C:\Users\Jason\desktop\CPSC 304\FantasyStockLeague\BackEnd\package.json
  
 * **Error Response:**
 
-  * **Code:** 500 INTERNAL SERVER ERROR <br />
+  * **Code:** 500 Internal Server Error <br />
     **Content:** `{ error : Server Error }`
 
 * **Sample Call:**
 
-  <_$.ajax({ 
-      "companyID": "AAPL",
-      "traderID": "717",
-      "numOfShares": "20"
+  <_$.ajax({
+      url: "http://localhost:3005/buy",
+      dataType: "json",
+      data: {
+        "companyID": "AAPL",
+        "traderID": "717",
+        "numOfShares": "20"
+      },
+      type: "POST"
     });_>
