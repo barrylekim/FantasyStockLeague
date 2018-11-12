@@ -163,7 +163,14 @@ router.post("/addTrader", (req, res) => {
                                 if (err3) {
                                     res.status(500, { error: err4 });
                                 } else {
-                                    res.send("Added trader + updated portfolio and leaderboard table");
+                                    let addWatchList = `INSERT INTO watchlist(watchlistID, traderID) values ($1, $2)`;
+                                    client.query(addWatchList, [WLID, TID], (err1, result1) => {
+                                        if (err1) {
+                                            res.status(500).json({error: err1});
+                                        } else {
+                                            res.send("Added trader + updated portfolio and leaderboard table + watchlist yeee");
+                                        }
+                                    });
                                 }
                             });
                         }
@@ -176,7 +183,7 @@ router.post("/addTrader", (req, res) => {
 
 //returns top 5 players on the leaderboard
 router.get("/getTopPlayers", (req, res) => {
-    let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername funds FROM trader ORDER BY funds DESC`;
+    let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername, funds FROM trader ORDER BY funds DESC`;
     client.query(getALLTradersSortedTopDownSQL, (err, result) => {
         if (err) {
             console.log(getALLTradersSortedTopDownSQL + err);
