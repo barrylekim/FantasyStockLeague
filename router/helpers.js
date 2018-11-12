@@ -1,3 +1,4 @@
+var request = require('request');
 var pg = require("pg");
 var client = new pg.Client(process.env.CONNECTIONSTR);
 client.connect();
@@ -99,9 +100,8 @@ module.exports = {
 
     checkContains: async function(portfolioID, CID, type) {
         try {
-            let join = `SELECT companyID FROM trader NATURAL JOIN contains`;
-            let companys = await client.query(join);
-            console.log(companys.rows);
+            let join = `SELECT * FROM contains WHERE portfolioID = $1 AND companyID = $2`;
+            let companys = await client.query(join, [portfolioID, CID]);
             if (type === 1) {
                 if (companys.rows.length === 0) {
                     let addRow = `INSERT INTO contains(portfolioID, companyID) values($1, $2)`;
@@ -118,5 +118,20 @@ module.exports = {
         } catch (err) {
             throw err;
         }
-    }
+    },
+
+    getAPI: function(company) {
+        return new Promise(function(resolve, reject) {
+          request({
+            url: "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + company + "&interval=5min&apikey=G4NS6IR5ZRJZRI6O",
+            method: 'GET'
+          },function(err, response, body) {
+            if (err) {
+              console.log("ERROR: " + err);
+            } else {
+              resolve(body);
+            }
+          });
+        })
+      },
 }

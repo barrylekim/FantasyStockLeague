@@ -1,6 +1,8 @@
 const express = require("express");
 var router = express.Router();
 var helper = require("./helpers");
+var checkAuth = require("../middleware/checkAuth");
+const jwt = require("jsonwebtoken");
 var pg = require("pg");
 var client = new pg.Client(process.env.CONNECTIONSTR);
 client.connect();
@@ -8,6 +10,28 @@ let startingFund = 30000;
 let IDMap = {};
 
 helper.start();
+
+router.get("/init", (req, res) => {
+    let arr = ["AAPL", "GOOG", "AMZN", "MSFT", "NFLX", "TWTR", "FB", "DOW J", "SBUX", "NKE"];
+    let names = ["Apple", "Google", "Amazon", "Microsoft", "Netflix", "Twitter", "Facebook", "Dow Jones", "Starbucks", "Nike"];
+    let industries = ["techonology", "techbology", "technology", "technology", "entertainment", "Social Media", "Social Media", "Finance", "Coffee shop", "Sports"];
+    for (var i = 0; i < arr.length; i++) {
+        helper.getAPI().then((result) => {
+            let price = JSON.parse(result)["Time Series (Daily)"]["2018-11-09"]["1. open"];
+            let volume = JSON.parse(result)["Time Series (Daily)"]["2018-11-09"]["5. volume"];
+            createPriceEntry(price).then((id) => {
+                let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+                client.query(addQuery, [arr[i], volume, industries[i], names[i], id], (err, result) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(result);
+                    }
+                });
+            });
+        });
+    }
+})
 
 router.post("/buy", async (req, res) => {
     try {
@@ -124,7 +148,6 @@ router.post("/addTrader", (req, res) => {
                                     res.send("Added trader + updated portfolio and leaderboard table + watchlist yeee");
                                 }
                             });
-
                         }
                     });
                 }
@@ -146,7 +169,7 @@ router.get("/getTrader/:id", (req, res) => {
             res.status(500).json({ error: err });
         } else {
             let portfolioID = result.rows[0].portfolioid;
-            let getPortfolio = `SELECT * FROM contains WHERE portfolioID = $1`;
+            let getPortfolio = `SELECT companyid, numofshares, industry, companyname, value FROM contains NATURAL JOIN company NATURAL JOIN price WHERE portfolioID = $1`;
             client.query(getPortfolio, [portfolioID], (err, companys) => {
                 if (err) {
                     res.status(500).json({ error: err });
@@ -239,7 +262,7 @@ router.get("/addRows", (req, res) => {
     let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
 
     createPriceEntry(58).then((id) => {
-        client.query(addQuery, ["APPL", 50, "Tech", "Apple", id], (err, result) => {
+        client.query(addQuery, ["AAPL", 50, "Tech", "Apple", id], (err, result) => {
             if (err) {
                 console.log(err);
             } else {
