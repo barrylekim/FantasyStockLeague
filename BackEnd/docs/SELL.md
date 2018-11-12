@@ -49,3 +49,11 @@ Provide name of company, ID of trader making the sale, and number of shares to b
 **Code** : `500 Internal Server Error`
 
 **Content** : `{error: error message}`
+
+### Or
+
+**Condition** : If given companyID does not exist in database.
+
+**Code** : `400 Bad Request Error`
+
+**Content** : `{error: error message}`

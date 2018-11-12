@@ -42,10 +42,18 @@ Provide name of company, ID of trader making the purchase, and number of shares 
 }
 ```
 
-## Error Responses
+## Error Response
 
 **Condition** : If req body is missing information or invalid.
 
 **Code** : `500 Internal Server Error`
+
+**Content** : `{error: error message}`
+
+### Or
+
+**Condition** : If given comapanyID does not exist in database.
+
+**Code** : `400 Bad Request Error`
 
 **Content** : `{error: error message}`
