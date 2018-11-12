@@ -154,7 +154,14 @@ router.post("/addTrader", (req, res) => {
                                 if (err3) {
                                     res.status(500, { error: err4 });
                                 } else {
-                                    res.send("Added trader + updated portfolio and leaderboard table");
+                                    let addWatchList = `INSERT INTO watchlist(watchlistID, traderID) values ($1, $2)`;
+                                    client.query(addWatchList, [WLID, TID], (err1, result1) => {
+                                        if (err1) {
+                                            res.status(500).json({error: err1});
+                                        } else {
+                                            res.send("Added trader + updated portfolio and leaderboard table + watchlist yeee");
+                                        }
+                                    });
                                 }
                             });
                         }
