@@ -185,7 +185,6 @@ router.post("/addTrader", (req, res) => {
 //returns top 5 players on the leaderboard, does not work because it looks at funds
 router.get("/getTopPlayers", (req, res) => {
     let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername, funds FROM trader ORDER BY funds DESC`;
-    let get
     client.query(getALLTradersSortedTopDownSQL, (err, result) => {
         if (err) {
             console.log(getALLTradersSortedTopDownSQL + err);
@@ -222,7 +221,6 @@ router.get("/getAllPlayers", (req, res) => {
 // To get networth call netBuy and then subtract netSell, netBuy is the value of (all buy transactions + funds), netSell is the value of (all sell transactions)
 router.get("/netSell", async (req, res) => {
     let name = req.body.name;
-    let buyTransactions = [];
     let sellTransactions = [];
     let amountofsharesSell = [];
     let priceidsSell = [];
@@ -237,7 +235,6 @@ router.get("/netSell", async (req, res) => {
                     console.log("find sellTransactions" + err);
                 } else {
                     for (let key in result2.rows) {
-                        // We have to add when selling stocks, worth = worth selltransactionsvalues * numofshares
                      if (result2.rows[key].type === '0') {
                             sellTransactions.push(result2.rows[key].transactionid);
                         }
@@ -277,7 +274,6 @@ router.get("/netSell", async (req, res) => {
 router.get("/netBuy", async (req, res) => {
         let name = req.body.name;
         let buyTransactions = [];
-        let sellTransactions = [];
         let amountofsharesBuy = [];
         let priceidsBuy = [];
         let findTraderId = `SELECT traderID FROM trader WHERE tradername = $1`;
