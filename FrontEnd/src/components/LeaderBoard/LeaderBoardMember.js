@@ -1,9 +1,9 @@
 import React from 'react'; 
-const LeaderBoardMember = (props) =>{
+const Member = (props) =>{
     return (
-        <div >
-            <p>{props.body}</p>
-        </div>
+        
+            <p>{props.name} {props.funds}</p>
+        
     )
 }
-export default LeaderBoardMember; 
+export default Member; 
