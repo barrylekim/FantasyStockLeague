@@ -26,7 +26,7 @@ Provide name of the trader in the url.
 {
     "trader": {
         "traderid": "957",
-        "funds": -15710,
+        "funds": 15710,
         "tradername": "Barry",
         "leaderboardid": "1",
         "portfolioid": "105"
