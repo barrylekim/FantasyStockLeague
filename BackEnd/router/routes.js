@@ -12,7 +12,7 @@ helper.start();
 router.get("/init", async (req, res) => {
     let arr = ["AAPL", "GOOG", "AMZN", "MSFT", "NFLX", "GS", "SBUX", "NKE"];
     let names = ["Apple", "Google", "Amazon", "Microsoft", "Goldman Sachs", "Netflix", "Starbucks", "Nike"];
-    let industries = ["techonology", "technology", "technology", "technology", "entertainment", "Finance", "Coffee shop", "Sports"];
+    let industries = ["technology", "technology", "technology", "technology", "entertainment", "Finance", "Coffee shop", "Sports"];
     let promises = [];
     for (let i = 0; i < arr.length; i++) {
         let find = `SELECT * from company WHERE companyid = $1`

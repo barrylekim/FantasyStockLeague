@@ -43,7 +43,7 @@ Provide name of the trader in the url.
         {
             "companyid": "AAPL",
             "numofshares": 3145,
-            "industry": "techonology",
+            "industry": "technology",
             "companyname": "Apple",
             "value": 218,
             "shares": 210
