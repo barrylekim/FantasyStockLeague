@@ -62,7 +62,7 @@ Provide name of the trader in the url.
 
 ## Error Response
 
-**Condition** : If req body is missing information or invalid.
+**Condition** : Given trader name does not exist in database.
 
 **Code** : `404 Not Found Error`
 
@@ -70,8 +70,9 @@ Provide name of the trader in the url.
 
 ### Or
 
-**Condition** : If given comapanyID does not exist in database.
+**Condition** : If req body is missing information or invalid.
 
 **Code** : `500 Internal Server Error`
 
 **Content** : `{error: error message}`
+
