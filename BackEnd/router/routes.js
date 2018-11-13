@@ -329,12 +329,13 @@ router.get("/deleteTrader/:id", (req, res) => {
 router.get("/largestShare", (req, res) => {
     let select = `SELECT traderID, companyID, MAX(total) AS max FROM (SELECT traderID, companyID, SUM (sharesPurchased) AS total FROM transaction GROUP BY traderID, companyID) AS innerTable GROUP BY traderID, companyID HAVING total = MAX(total) ORDER BY max DESC`;
     //let select = `SELECT companyID, MAX(value), tradername FROM transaction NATURAL JOIN price WHERE value = MAX(value) GROUP BY companyID`;
-    let try1 = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID`;
+    let try1 = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID ORDER BY total DESC`;
     client.query(try1, (err, result) => {
         if (err) {
-            console.log(err);
+            res.status(500).json({ error: err });
         } else {
-            console.log(result.rows);
+            let maxTrader = result.rows[0].traderid;
+            res.status(200).json({traderID: maxTrader});
         }
     });
 });
