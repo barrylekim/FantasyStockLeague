@@ -52,11 +52,11 @@ Provide name of company, ID of trader making the purchase, and number of shares 
 
 ### Or
 
-**Condition** : Given comapanyID does not exist in database.
+**Condition** : Given companyID does not exist in database.
 
 **Code** : `400 Bad Request Error`
 
-**Content** : `{error: error message}`
+**Content** : `{error: Invalid CompanyID}`
 
 ### Or
 
