@@ -40,6 +40,21 @@ router.get("/init", async (req, res) => {
     });
 });
 
+// get tradernames of all the traders who have purchased all the companys in the database
+router.get("/traderAll", (req, res) => {
+    let all = `SELECT t.tradername FROM trader AS t WHERE NOT EXISTS ((SELECT c.companyID FROM company AS c) EXCEPT (SELECT companyID FROM trader as t, contains as c WHERE t.portfolioid = c.portfolioID))`;
+    let tryAgain = `SELECT t.tradername FROM trader AS t WHERE NOT EXISTS ((SELECT c.companyID from company AS c) EXCEPT (SELECT companyID FROM contains))`;
+
+    client.query(tryAgain, (err, response) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(response.rows);
+            res.send(response.rows);
+        }
+    })
+});
+
 router.post("/buy", async (req, res) => {
     try {
         let TID = req.body.traderID;
@@ -271,6 +286,40 @@ router.get("/netSell", async (req, res) => {
     });
 });
 
+router.get("/deleteTrader/:id", (req, res) => {
+    let find = `SELECT * FROM trader WHERE traderid = $1`;
+    client.query(find, [req.params.id], (err, result) => {
+        if (err) {
+            console.log(err);
+        }
+        if (result.rows.length === 0) {
+            res.status(400).json({error: "id does not exist"});
+        } else {
+            let deleteRow = `DELETE FROM trader WHERE traderID = $1`;
+            client.query(deleteRow, [req.params.id], (err, response) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    res.status(200).json({message: "trader deleted"});
+                }
+            })
+        }
+    });
+});
+
+router.get("/largestShare", (req, res) => {
+    let select = `SELECT traderID, companyID, MAX(total) AS max FROM (SELECT traderID, companyID, SUM (sharesPurchased) AS total FROM transaction GROUP BY traderID, companyID) AS innerTable GROUP BY traderID, companyID HAVING total = MAX(total) ORDER BY max DESC`;
+    //let select = `SELECT companyID, MAX(value), tradername FROM transaction NATURAL JOIN price WHERE value = MAX(value) GROUP BY companyID`;
+    let try1 = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID`;
+    client.query(try1, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(result.rows);
+        }
+    });
+});
+
 router.get("/netBuy", async (req, res) => {
         let name = req.body.name;
         let buyTransactions = [];
@@ -340,14 +389,22 @@ router.get("/getTrader/:id", (req, res) => {
                 if (err) {
                     res.status(500).json({ error: err });
                 } else {
-                    res.status(200).json({
-                        trader: result.rows[0],
-                        portfolio: companys.rows
+                    let getwatchList = `SELECT companyID FROM trader NATURAL JOIN includes WHERE traderID = $1`;
+                    client.query(getwatchList, [req.params.id], (err, response) => {
+                        if (err) {
+                            res.status(500).json({error: err});
+                        } else {
+                            res.status(200).json({
+                                trader: result.rows[0],
+                                portfolio: companys.rows,
+                                watchlist: response.rows
+                            });
+                        }
                     });
                 }
             });
         }
-    })
+    });
 });
 
 //Below are for testing
