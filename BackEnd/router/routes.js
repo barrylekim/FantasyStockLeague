@@ -330,7 +330,7 @@ router.get("/largestShare", (req, res) => {
     let select = `SELECT traderID, companyID, MAX(total) AS max FROM (SELECT traderID, companyID, SUM (sharesPurchased) AS total FROM transaction GROUP BY traderID, companyID) AS innerTable GROUP BY traderID, companyID HAVING total = MAX(total) ORDER BY max DESC`;
     //let select = `SELECT companyID, MAX(value), tradername FROM transaction NATURAL JOIN price WHERE value = MAX(value) GROUP BY companyID`;
     let try1 = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID`;
-    client.query(oof, (err, result) => {
+    client.query(try1, (err, result) => {
         if (err) {
             console.log(err);
         } else {
@@ -402,26 +402,30 @@ router.get("/getTrader/:name", (req, res) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
-            let portfolioID = result.rows[0].portfolioid;
-            let getPortfolio = `SELECT companyid, numofshares, industry, companyname, value FROM contains NATURAL JOIN company NATURAL JOIN price WHERE portfolioID = $1`;
-            client.query(getPortfolio, [portfolioID], (err, companys) => {
-                if (err) {
-                    res.status(500).json({ error: err });
-                } else {
-                    let getwatchList = `SELECT companyID FROM trader NATURAL JOIN includes WHERE tradername = $1`;
-                    client.query(getwatchList, [req.params.name], (err, response) => {
-                        if (err) {
-                            res.status(500).json({error: err});
-                        } else {
-                            res.status(200).json({
-                                trader: result.rows[0],
-                                portfolio: companys.rows,
-                                watchlist: response.rows
-                            });
-                        }
-                    });
-                }
-            });
+            if (result.rows.length === 0) {
+                res.status(404).json({message: "Trader name not found"});
+            } else {
+                let portfolioID = result.rows[0].portfolioid;
+                let getPortfolio = `SELECT companyid, numofshares, industry, companyname, value FROM contains NATURAL JOIN company NATURAL JOIN price WHERE portfolioID = $1`;
+                client.query(getPortfolio, [portfolioID], (err, companys) => {
+                    if (err) {
+                        res.status(500).json({ error: err });
+                    } else {
+                        let getwatchList = `SELECT companyID FROM trader NATURAL JOIN includes WHERE tradername = $1`;
+                        client.query(getwatchList, [req.params.name], (err, response) => {
+                            if (err) {
+                                res.status(500).json({error: err});
+                            } else {
+                                res.status(200).json({
+                                    trader: result.rows[0],
+                                    portfolio: companys.rows,
+                                    watchlist: response.rows
+                                });
+                            }
+                        });
+                    }
+                });
+            }
         }
     });
 });
