@@ -12,7 +12,7 @@ module.exports = {
         let portfolio = `CREATE TABLE IF NOT EXISTS portfolio(portfolioID VARCHAR(10) NOT NULL PRIMARY KEY)`;
         let watchList = `CREATE TABLE IF NOT EXISTS watchlist(watchlistID VARCHAR(10) NOT NULL PRIMARY KEY, traderID VARCHAR(10), FOREIGN KEY (traderID) REFERENCES trader ON DELETE SET NULL ON UPDATE CASCADE)`;
         let includes = `CREATE TABLE IF NOT EXISTS includes(watchlistID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, PRIMARY KEY (companyID, watchlistID), FOREIGN KEY (watchlistID) REFERENCES watchlist(watchlistID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
-        let contains = `CREATE TABLE IF NOT EXISTS contains(portfolioID VARCHAR(10) NOT NULL, companyID CHAR(4), PRIMARY KEY (portfolioID, companyID), FOREIGN KEY (portfolioID) REFERENCES portfolio(portfolioID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
+        let contains = `CREATE TABLE IF NOT EXISTS contains(portfolioID VARCHAR(10) NOT NULL, companyID CHAR(4), shares INTEGER, PRIMARY KEY (portfolioID, companyID), FOREIGN KEY (portfolioID) REFERENCES portfolio(portfolioID), FOREIGN KEY (companyID) REFERENCES company(companyID))`;
         let transaction = `CREATE TABLE IF NOT EXISTS transaction(transactionID VARCHAR(10) PRIMARY KEY, traderID VARCHAR(10) NOT NULL, companyID CHAR(4) NOT NULL, priceID VARCHAR(10) NOT NULL, type BIT(1), sharesPurchased INTEGER, FOREIGN KEY (traderID) REFERENCES trader(traderID) ON DELETE NO ACTION ON UPDATE CASCADE, FOREIGN KEY (priceID) REFERENCES price(priceID) ON DELETE NO ACTION ON UPDATE CASCADE)`;
         
         let arr = [price, company, leaderBoard, portfolio, trader, watchList, includes, contains, transaction];
@@ -98,15 +98,16 @@ module.exports = {
         }
     },
 
-    checkContains: async function(portfolioID, CID, type) {
+    checkContains: async function(portfolioID, CID, type, numOfShares) {
         try {
             let join = `SELECT * FROM contains WHERE portfolioID = $1 AND companyID = $2`;
             let companys = await client.query(join, [portfolioID, CID]);
             if (type === 1) {
                 if (companys.rows.length === 0) {
-                    let addRow = `INSERT INTO contains(portfolioID, companyID) values($1, $2)`;
-                    await client.query(addRow, [portfolioID, CID]);
+                    let addRow = `INSERT INTO contains(portfolioID, companyID, shares) values($1, $2, $3)`;
+                    await client.query(addRow, [portfolioID, CID, numOfShares]);
                     return;
+                } else {
                 }
             } else {
                 if (companys.rows.length === 1) {
@@ -115,6 +116,19 @@ module.exports = {
                     return;
                 }
             }
+            let get = `SELECT shares FROM contains WHERE portfolioID = $1 AND companyID = $2`;
+            let response = await client.query(get, [portfolioID, CID]);
+            let shares = response.rows[0].shares;
+            if (shares === null) {
+                shares = 0;
+            }
+            if (type === 1) {
+                shares += parseInt(numOfShares);
+            } else {
+                shares -= parseInt(numOfShares);
+            }           
+            let update = `UPDATE contains SET shares=($1) WHERE portfolioID = $2 AND companyID = $3`;
+            await client.query(update, [shares, portfolioID, CID]);
         } catch (err) {
             throw err;
         }

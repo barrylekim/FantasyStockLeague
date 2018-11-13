@@ -66,15 +66,10 @@ router.post("/buy", async (req, res) => {
         } else {
             let priceID = company.rows[0].priceid;
             let price = await helper.getValue(priceID);
-            console.log("0");
             await helper.addTransaction(TID, CID, priceID, 1, numOfShares);
-            console.log("1");
             await helper.updateFunds(TID, price, numOfShares, 1);
-            console.log("2");
             let portfolioID = await helper.getPortfolioID(TID);
-            console.log("3");
-            await helper.checkContains(portfolioID, CID, 1);
-            console.log("4");
+            await helper.checkContains(portfolioID, CID, 1, numOfShares);
             res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
         }
     } catch (err) {
@@ -96,7 +91,7 @@ router.post("/sell", async (req, res) => {
             await helper.addTransaction(TID, CID, priceID, 0, numOfShares);
             await helper.updateFunds(TID, price, numOfShares, 0);
             let portfolioID = await helper.getPortfolioID(TID);
-            await helper.checkContains(portfolioID, CID, 0);
+            await helper.checkContains(portfolioID, CID, 0, numOfShares);
             res.status(200).json({ message: numOfShares + " of " + CID + " sold" });
         }
     } catch (err) {
@@ -407,7 +402,7 @@ router.get("/getTrader/:name", (req, res) => {
                 res.status(404).json({message: "Trader name not found"});
             } else {
                 let portfolioID = result.rows[0].portfolioid;
-                let getPortfolio = `SELECT companyid, numofshares, industry, companyname, value FROM contains NATURAL JOIN company NATURAL JOIN price WHERE portfolioID = $1`;
+                let getPortfolio = `SELECT companyid, numofshares, industry, companyname, value, shares FROM contains NATURAL JOIN company NATURAL JOIN price WHERE portfolioID = $1`;
                 client.query(getPortfolio, [portfolioID], (err, companys) => {
                     if (err) {
                         res.status(500).json({ error: err });
