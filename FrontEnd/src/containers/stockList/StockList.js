@@ -13,8 +13,6 @@ class StockList extends Component {
       id: props.id,
       userstocks:props.stocks
     } 
-    this.handleChange = this.handleChange.bind(this); 
-    this.submitData = this.submitData.bind(this); 
 
   }
   
@@ -49,58 +47,13 @@ class StockList extends Component {
     })
     
   }
-  handleChange(id,event) {
-    let curr = this.state;
-    if(id==="comp"){
-      curr.query = event.target.value; 
-      this.setState({curr});
-    }
-    else if(id==="price"){
-      curr.queryP = event.target.value;
-      this.setState({curr});
-    }
-    
-  }
-  submitData(event){
-    event.preventDefault();
-    let comp = this.state.query;
-    let shares = this.state.queryP; 
-    let id = this.state.id; 
-    let data = {
-      traderID: id,
-      companyID: comp,
-      numOfShares: shares
-    }; 
-    fetch('http://localhost:3005/buy',{
-    method: 'POST',
-    mode: 'cors',
-    credentials: 'same-origin',
-    headers:{
-      "Content-Type": "application/json; charset=utf-8"
-    },
-    body: JSON.stringify(data),
-  }).then(res =>{
-    console.log(res);
-    return res.json()
-  }).then(myJ=>{
-    console.log(myJ); 
-  })
-
-  }
+ 
+ 
     render() {
       let stockr = this.state.stocks; 
       return (
         <div className= "StockList" key='1'>
-        <Portfolio></Portfolio>
-     <form onSubmit={this.submitData.bind(this)}> 
-     <label>
-       Buy: 
-    <input   onChange={(e)=>this.handleChange("comp",e)} value = {this.state.query}/>
-    NumberOfShares:
-    <input onChange={(e)=>this.handleChange("price",e)} value={this.state.queryP}/>  
-    <input type="submit" value="Submit"/>
-    </label>            
-    </form>
+     
             {
               stockr.map((value,index) =>{
                 return (<li key={index}>
