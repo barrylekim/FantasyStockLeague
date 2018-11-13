@@ -330,7 +330,7 @@ router.get("/largestShare", (req, res) => {
     let select = `SELECT traderID, companyID, MAX(total) AS max FROM (SELECT traderID, companyID, SUM (sharesPurchased) AS total FROM transaction GROUP BY traderID, companyID) AS innerTable GROUP BY traderID, companyID HAVING total = MAX(total) ORDER BY max DESC`;
     //let select = `SELECT companyID, MAX(value), tradername FROM transaction NATURAL JOIN price WHERE value = MAX(value) GROUP BY companyID`;
     let try1 = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID`;
-    client.query(try1, (err, result) => {
+    client.query(oof, (err, result) => {
         if (err) {
             console.log(err);
         } else {
@@ -396,9 +396,9 @@ router.get("/netBuy", async (req, res) => {
 });
 
 // get trader info by id, useful to display portfolio on frontend
-router.get("/getTrader/:id", (req, res) => {
-    let getTrader = `SELECT * FROM trader WHERE traderID = $1`;
-    client.query(getTrader, [req.params.id], (err, result) => {
+router.get("/getTrader/:name", (req, res) => {
+    let getTrader = `SELECT * FROM trader WHERE tradername = $1`;
+    client.query(getTrader, [req.params.name], (err, result) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
@@ -408,8 +408,8 @@ router.get("/getTrader/:id", (req, res) => {
                 if (err) {
                     res.status(500).json({ error: err });
                 } else {
-                    let getwatchList = `SELECT companyID FROM trader NATURAL JOIN includes WHERE traderID = $1`;
-                    client.query(getwatchList, [req.params.id], (err, response) => {
+                    let getwatchList = `SELECT companyID FROM trader NATURAL JOIN includes WHERE tradername = $1`;
+                    client.query(getwatchList, [req.params.name], (err, response) => {
                         if (err) {
                             res.status(500).json({error: err});
                         } else {
