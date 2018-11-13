@@ -31,7 +31,16 @@ class App extends Component {
 submitData(event){
   event.preventDefault();
   let st = this.state;
-    fetch('http://localhost:3005/getTrader/'+st.value).then(res2 =>{
+  let data = st.value; 
+    fetch('http://localhost:3005/findTrader/',{
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'same-origin',
+      headers:{
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify({name: data}),
+    }).then(res2 =>{
       console.log(res2);
       if(res2.status===500){
         console.log(res2); 
