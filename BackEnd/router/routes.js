@@ -312,7 +312,7 @@ router.post("/addTrader", (req, res) => {
 
 // get the user with most transactions
 // Go to the transaction table
-router.get("/getMostTransPlayer", (req, res) => {
+router.get("/getMostTransactionPlayer", (req, res) => {
     let getNumOfTransForEachTrader = `SELECT traderID, COUNT(transactionID) FROM transaction GROUP BY traderID ORDER BY COUNT(transactionID) DESC`;
     client.query(getNumOfTransForEachTrader, (err, result) => {
         if (err) {
@@ -571,51 +571,6 @@ router.get("/getCompany", (req, res) => {
             res.send(result.rows);
         }
     });
-});
-
-router.get("/addRows", (req, res) => {
-    let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-
-    helper.createPriceEntry(58).then((id) => {
-        client.query(addQuery, ["AAPL", 50, "Tech", "Apple", id], (err, result) => {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(result);
-            }
-        });
-    });
-
-    helper.createPriceEntry(150).then((id1) => {
-        client.query(addQuery, ["GOOG", 25, "Tech", "Google", id1], (err, result) => {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(result);
-            }
-        });
-    });
-
-    helper.createPriceEntry(200).then((id2) => {
-        client.query(addQuery, ["VNET", 80, "Tech", "Vianet", id2], (err, result) => {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(result);
-            }
-        });
-    });
-
-    helper.createPriceEntry(250).then((id3) => {
-        client.query(addQuery, ["AMD", 160, "Tech", "Amd", id3], (err, result) => {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(result);
-            }
-        });
-    });
-    res.send();
 });
 
 module.exports = router;
