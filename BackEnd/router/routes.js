@@ -40,6 +40,39 @@ router.get("/init", async (req, res) => {
     });
 });
 
+router.get("/updatePrices", (req, res) => {
+    let promises = [];
+    let companyList = `SELECT companyID FROM company`;
+    client.query(companyList, (err, response) => {
+        if (err) {
+            console.log(err);
+        } else {
+            response.rows.forEach((companyResult) => {
+                let company = companyResult.companyid;
+                let promise = helper.getAPI(company).then((result) => {
+                    let json = JSON.parse(result)[0];
+                    let price = parseInt(json.average);
+                    let volume = parseInt(json.volume);
+                    helper.createPriceEntry(price).then((id) => {
+                        console.log(id);
+                        console.log(company);
+                        let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
+                        client.query(updateCompany, [id, volume, company], (err, result) => {
+                            if (err) {
+                                console.log(err);
+                            }
+                        });
+                    });
+                });
+                promises.push(promise);
+            });
+            Promise.all(promises).then(() => {
+                res.status(200).json({message: "Prices updated"});
+            });
+        }
+    });
+});
+
 // get tradernames of all the traders who have purchased all the companys in the database
 router.get("/traderAll", (req, res) => {
     let all = `SELECT t.tradername FROM trader AS t WHERE NOT EXISTS ((SELECT c.companyID FROM company AS c) EXCEPT (SELECT companyID FROM trader as t, contains as c WHERE t.portfolioid = c.portfolioID))`;
@@ -55,16 +88,78 @@ router.get("/traderAll", (req, res) => {
     })
 });
 
+// return traderID and companyID of the trader with the largest shares the given company
 router.get("/largestShare", (req, res) => {
-    let select = `SELECT traderID, companyID, MAX(total) AS max FROM (SELECT traderID, companyID, SUM (sharesPurchased) AS total FROM transaction GROUP BY traderID, companyID) AS innerTable GROUP BY traderID, companyID HAVING total = MAX(total) ORDER BY max DESC`;
-    //let select = `SELECT companyID, MAX(value), tradername FROM transaction NATURAL JOIN price WHERE value = MAX(value) GROUP BY companyID`;
-    let try1 = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID ORDER BY total DESC`;
-    client.query(try1, (err, result) => {
+    let select = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID ORDER BY total DESC`;
+    client.query(select, (err, result) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
             let maxTrader = result.rows[0].traderid;
             res.status(200).json({traderID: maxTrader});
+        }
+    });
+});
+
+// return all transactions in the database
+router.get('/transaction', async (req, res) => {
+    let select = `SELECT * FROM transaction`;
+    client.query(select, (err, result) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(result.rows);
+            res.send(result.rows);
+        }
+    })
+});
+
+// return companyID with the largest price transaction
+router.get("/largestPriceTx", (req, res) => {
+    let select = `SELECT DISTINCT companyID FROM company NATURAL JOIN transaction NATURAL JOIN price WHERE value = (SELECT MAX(value) FROM transaction NATURAL JOIN price)`;
+    client.query(select, (err, response) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        } else {
+            res.status(200).json({ "companyid": response.rows[0] });
+        }
+    });
+});
+
+// returns an array of the number of transactions for each company
+router.get("/numTransactions", (req, res) => {
+    let select = `SELECT companyid, count(transactionid) FROM transaction GROUP BY companyid`;
+    client.query(select, (err, response) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        } else {
+            res.status(200).send(response.rows);
+        }
+    })
+});
+
+// return array of tradernames who have bought company x
+router.get("/invested/:companyid", (req, res) => {
+    let CID = req.params.companyid;
+    let select = `SELECT tradername FROM trader NATURAL JOIN contains WHERE companyID = $1`;
+    client.query(select, [CID], (err, response) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        } else {
+             res.status(200).send(response.rows);
+        }
+    });
+});
+
+// get all traders who have funds greater than a certain amount
+router.get("/tradersAbove/:funds", (req, res) => {
+    let limit = req.params.funds;
+    let select = `SELECT tradername FROM trader WHERE funds > $1`;
+    client.query(select, [limit], (err, response) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        } else {
+            res.status(200).send(response.rows);
         }
     });
 });
@@ -319,7 +414,7 @@ router.get("/netSell", async (req, res) => {
     });
 });
 
-router.get("/deleteTrader/:id", (req, res) => {
+router.post("/deleteTrader/:id", (req, res) => {
     let find = `SELECT * FROM trader WHERE traderid = $1`;
     client.query(find, [req.params.id], (err, result) => {
         if (err) {
