@@ -17,26 +17,30 @@ router.get("/init", async (req, res) => {
     for (let i = 0; i < arr.length; i++) {
         let find = `SELECT * from company WHERE companyid = $1`
         client.query(find, [arr[i]], (err, res) => {
-            if (res.rows.length === 0) {
-                let promise = helper.getAPI(arr[i]).then((result) => {
-                    let json = JSON.parse(result)[0];
-                    let price = parseInt(json.average);
-                    let volume = parseInt(json.volume);
-                    helper.createPriceEntry(price).then((id) => {
-                        let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-                        client.query(addQuery, [arr[i], volume, industries[i], names[i], id], (err, result) => {
-                            if (err) {
-                                console.log(err);
-                            }
+            if (err) {
+                res.status(500).json({ error: err });
+            } else {
+                if (res.rows.length === 0) {
+                    let promise = helper.getAPI(arr[i]).then((result) => {
+                        let json = JSON.parse(result)[0];
+                        let price = parseInt(json.average);
+                        let volume = parseInt(json.volume);
+                        helper.createPriceEntry(price).then((id) => {
+                            let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+                            client.query(addQuery, [arr[i], volume, industries[i], names[i], id], (err, result) => {
+                                if (err) {
+                                    res.status(500).json({ error: err });
+                                }
+                            });
                         });
                     });
-                });
-                promises.push(promise);
+                    promises.push(promise);
+                }
             }
         });
     }
     Promise.all(promises).then(() => {
-        res.send("added");
+        res.status(200).json({message: "Companies added"});
     });
 });
 
@@ -45,7 +49,7 @@ router.get("/updatePrices", (req, res) => {
     let companyList = `SELECT companyID FROM company`;
     client.query(companyList, (err, response) => {
         if (err) {
-            console.log(err);
+            res.status(500).json({ error: err });
         } else {
             response.rows.forEach((companyResult) => {
                 let company = companyResult.companyid;
@@ -54,12 +58,10 @@ router.get("/updatePrices", (req, res) => {
                     let price = parseInt(json.average);
                     let volume = parseInt(json.volume);
                     helper.createPriceEntry(price).then((id) => {
-                        console.log(id);
-                        console.log(company);
                         let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
                         client.query(updateCompany, [id, volume, company], (err, result) => {
                             if (err) {
-                                console.log(err);
+                                res.status(500).json({ error: err });
                             }
                         });
                     });
