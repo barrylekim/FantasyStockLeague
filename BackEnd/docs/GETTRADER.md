@@ -1,4 +1,4 @@
-# Buy Stocks
+# Get Trader
 
 Return trader info, including their portfolio and watchlist given the name of a trader.
 
