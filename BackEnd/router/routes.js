@@ -80,11 +80,15 @@ router.post("/buy", async (req, res) => {
         } else {
             let priceID = company.rows[0].priceid;
             let price = await helper.getValue(priceID);
-            await helper.addTransaction(TID, CID, priceID, 1, numOfShares);
-            await helper.updateFunds(TID, price, numOfShares, 1);
-            let portfolioID = await helper.getPortfolioID(TID);
-            await helper.checkContains(portfolioID, CID, 1, numOfShares);
-            res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
+            if (helper.checkTraderFunds(TID, price)) {
+                await helper.addTransaction(TID, CID, priceID, 1, numOfShares);
+                await helper.updateFunds(TID, price, numOfShares, 1);
+                let portfolioID = await helper.getPortfolioID(TID);
+                await helper.checkContains(portfolioID, CID, 1, numOfShares);
+                res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
+            } else {
+                res.status(400).json({ error: "Trader does not have enough funds"});
+            }
         }
     } catch (err) {
         res.status(500).json({ error: err });
@@ -397,7 +401,7 @@ router.get("/getTrader/:name", async (req, res) => {
         let getTrader = `SELECT * FROM trader WHERE tradername = $1`;
         let result = await client.query(getTrader, [req.params.name]);
         if (result.rows.length === 0) {
-            res.status(404).json({message: "Trader name not found"});
+            res.status(404).json({error: "Trader name not found"});
         } else {
             let portfolioID = result.rows[0].portfolioid;
             let getPortfolio = `SELECT companyid, numofshares, industry, companyname, value, shares FROM contains NATURAL JOIN company NATURAL JOIN price WHERE portfolioID = $1`;

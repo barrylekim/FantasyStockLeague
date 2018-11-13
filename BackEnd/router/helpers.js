@@ -184,5 +184,20 @@ module.exports = {
                 return resolve(worth);
             });
         });
+    },
+
+    checkTraderFunds: function (TID, price) {
+        let find = `SELECT funds FROM trader WHERE traderid = $1`;
+        client.query(find, [TID], (err , response) => {
+            if (err) {
+                throw err;
+            } else {
+                let funds = response.rows[0].funds;
+                if (funds - price >= 0) {
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 }

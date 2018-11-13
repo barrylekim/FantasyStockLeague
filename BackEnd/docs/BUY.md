@@ -44,16 +44,24 @@ Provide name of company, ID of trader making the purchase, and number of shares 
 
 ## Error Response
 
-**Condition** : If req body is missing information or invalid.
+**Condition** : User does not have enough funds.
 
-**Code** : `500 Internal Server Error`
+**Code** : `400 Bad Request Error`
+
+**Content** : `{error: "Trader does not have enough funds"}`
+
+### Or
+
+**Condition** : Given comapanyID does not exist in database.
+
+**Code** : `400 Bad Request Error`
 
 **Content** : `{error: error message}`
 
 ### Or
 
-**Condition** : If given comapanyID does not exist in database.
+**Condition** : If req body is missing information or invalid.
 
-**Code** : `400 Bad Request Error`
+**Code** : `500 Internal Server Error`
 
 **Content** : `{error: error message}`
