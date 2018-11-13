@@ -66,10 +66,15 @@ router.post("/buy", async (req, res) => {
         } else {
             let priceID = company.rows[0].priceid;
             let price = await helper.getValue(priceID);
+            console.log("0");
             await helper.addTransaction(TID, CID, priceID, 1, numOfShares);
+            console.log("1");
             await helper.updateFunds(TID, price, numOfShares, 1);
+            console.log("2");
             let portfolioID = await helper.getPortfolioID(TID);
+            console.log("3");
             await helper.checkContains(portfolioID, CID, 1);
+            console.log("4");
             res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
         }
     } catch (err) {
@@ -182,7 +187,7 @@ router.post("/addTrader", (req, res) => {
                                     let addWatchList = `INSERT INTO watchlist(watchlistID, traderID) values ($1, $2)`;
                                     client.query(addWatchList, [WLID, TID], (err1, result1) => {
                                         if (err1) {
-                                            res.status(500).json({error: err1});
+                                            res.status(500).json({ error: err1 });
                                         } else {
                                             res.send("Added trader + updated portfolio and leaderboard table + watchlist yeee");
                                         }
@@ -195,6 +200,20 @@ router.post("/addTrader", (req, res) => {
             });
         }
     });
+});
+
+// get the user with most transactions
+// Go to the transaction table
+router.get("/getMostTransPlayer", (req, res) => {
+    let getNumOfTransForEachTrader = `SELECT traderID, COUNT(transactionID) FROM transaction GROUP BY traderID ORDER BY COUNT(transactionID) DESC`;
+    client.query(getNumOfTransForEachTrader, (err, result) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        } else {
+            let highestTransTraderID = result.rows[0].traderid;
+            res.status(200).json({ message: "TraderID of player with most transactions:" + highestTransTraderID })
+        }
+    })
 });
 
 //returns top 5 players on the leaderboard, does not work because it looks at funds
@@ -250,14 +269,14 @@ router.get("/netSell", async (req, res) => {
                     console.log("find sellTransactions" + err);
                 } else {
                     for (let key in result2.rows) {
-                     if (result2.rows[key].type === '0') {
+                        if (result2.rows[key].type === '0') {
                             sellTransactions.push(result2.rows[key].transactionid);
                         }
                     }
                     let findPriceId = `SELECT priceID, sharesPurchased FROM transaction WHERE transactionID = ANY($1)`;
                     client.query(findPriceId, [sellTransactions], (err, result3) => {
                         if (err) {
-                            res.status(500).json({error: err});
+                            res.status(500).json({ error: err });
                         } else {
                             for (let key in result3.rows) {
                                 priceidsSell.push(result3.rows[key].priceid);
@@ -321,60 +340,60 @@ router.get("/largestShare", (req, res) => {
 });
 
 router.get("/netBuy", async (req, res) => {
-        let name = req.body.name;
-        let buyTransactions = [];
-        let amountofsharesBuy = [];
-        let priceidsBuy = [];
-        let findTraderId = `SELECT traderID FROM trader WHERE tradername = $1`;
-        client.query(findTraderId, [name], (err, result1) => {
-            if (err) {
-                console.log(findTraderId + err);
-            } else {
-                let findTransactions = `SELECT transactionID, type, sharesPurchased FROM transaction WHERE traderID = $1`;
-                client.query(findTransactions, [result1.rows[0].traderid], (err, result2) => {
-                    if (err) {
-                        console.log("find buyTransactions" + err);
-                    } else {
-                        for (let key in result2.rows) {
-                            if (result2.rows[key].type === '1') {
-                                buyTransactions.push(result2.rows[key].transactionid);
-                            }
+    let name = req.body.name;
+    let buyTransactions = [];
+    let amountofsharesBuy = [];
+    let priceidsBuy = [];
+    let findTraderId = `SELECT traderID FROM trader WHERE tradername = $1`;
+    client.query(findTraderId, [name], (err, result1) => {
+        if (err) {
+            console.log(findTraderId + err);
+        } else {
+            let findTransactions = `SELECT transactionID, type, sharesPurchased FROM transaction WHERE traderID = $1`;
+            client.query(findTransactions, [result1.rows[0].traderid], (err, result2) => {
+                if (err) {
+                    console.log("find buyTransactions" + err);
+                } else {
+                    for (let key in result2.rows) {
+                        if (result2.rows[key].type === '1') {
+                            buyTransactions.push(result2.rows[key].transactionid);
                         }
-                        let findPriceId = `SELECT priceID, sharesPurchased FROM transaction WHERE transactionID = ANY($1)`;
-                        client.query(findPriceId, [buyTransactions], (err, result3) => {
-                            if (err) {
-                                res.status(500).json({error: err});
-                            } else {
-                                for (let key in result3.rows) {
-                                    priceidsBuy.push(result3.rows[key].priceid);
-                                    amountofsharesBuy.push(result3.rows[key].sharespurchased);
-                                }
-                                let worth = helper.getPriceIds(priceidsBuy, amountofsharesBuy);
-                                Promise.all([worth]).then((x) => {
-                                    let stockWorth = JSON.stringify(x);
-                                    let stockWorth1 = stockWorth.replace("[", "");
-                                    let stockWorth2 = stockWorth1.replace("]", "");
-                                    let findFunds = `SELECT funds FROM trader WHERE tradername = $1`;
-                                    client.query(findFunds, [name], (err, result4) => {
-                                        if (err) {
-                                            res.status(500).json({ error: err });
-                                        } else {
-                                            let fundsNum = result4.rows[0].funds.toString();
-                                            let fundsNum2 = fundsNum.replace("$", "");
-                                            let fundsNum3 = fundsNum2.replace(",", "");
-                                            let fundsNum4 = fundsNum3.replace(".", "");
-                                            let worth = Number(stockWorth2) + (Number(fundsNum4)/100);
-                                            res.send(worth.toString());
-                                        }
-                                    });
-                                });
-                            }
-                        });
                     }
-                });
-            }
-        });
+                    let findPriceId = `SELECT priceID, sharesPurchased FROM transaction WHERE transactionID = ANY($1)`;
+                    client.query(findPriceId, [buyTransactions], (err, result3) => {
+                        if (err) {
+                            res.status(500).json({ error: err });
+                        } else {
+                            for (let key in result3.rows) {
+                                priceidsBuy.push(result3.rows[key].priceid);
+                                amountofsharesBuy.push(result3.rows[key].sharespurchased);
+                            }
+                            let worth = helper.getPriceIds(priceidsBuy, amountofsharesBuy);
+                            Promise.all([worth]).then((x) => {
+                                let stockWorth = JSON.stringify(x);
+                                let stockWorth1 = stockWorth.replace("[", "");
+                                let stockWorth2 = stockWorth1.replace("]", "");
+                                let findFunds = `SELECT funds FROM trader WHERE tradername = $1`;
+                                client.query(findFunds, [name], (err, result4) => {
+                                    if (err) {
+                                        res.status(500).json({ error: err });
+                                    } else {
+                                        let fundsNum = result4.rows[0].funds.toString();
+                                        let fundsNum2 = fundsNum.replace("$", "");
+                                        let fundsNum3 = fundsNum2.replace(",", "");
+                                        let fundsNum4 = fundsNum3.replace(".", "");
+                                        let worth = Number(stockWorth2) + (Number(fundsNum4) / 100);
+                                        res.send(worth.toString());
+                                    }
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        }
     });
+});
 
 // get trader info by id, useful to display portfolio on frontend
 router.get("/getTrader/:id", (req, res) => {

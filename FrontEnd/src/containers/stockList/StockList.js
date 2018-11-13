@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import Stock from '../../components/Stock/Stock'
 import './StockList.css'
+import Portfolio from '../Portfolio/Portfolio';
+
 class StockList extends Component {
   constructor(props){ 
     super(props);
@@ -8,6 +10,8 @@ class StockList extends Component {
       query:"",
       queryP:"",
       stocks:[],
+      id: props.id,
+      userstocks:props.stocks
     } 
     this.handleChange = this.handleChange.bind(this); 
     this.submitData = this.submitData.bind(this); 
@@ -52,22 +56,42 @@ class StockList extends Component {
       this.setState({curr});
     }
     else if(id==="price"){
-      curr.price = event.target.value;
+      curr.queryP = event.target.value;
       this.setState({curr});
     }
     
   }
   submitData(event){
     event.preventDefault();
-    let comp = this.state.value; 
-    //implement fetch calls for here 
+    let comp = this.state.query;
+    let shares = this.state.queryP; 
+    let id = this.state.id; 
+    let data = {
+      traderID: id,
+      companyID: comp,
+      numOfShares: shares
+    }; 
+    fetch('http://localhost:3005/buy',{
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'same-origin',
+    headers:{
+      "Content-Type": "application/json; charset=utf-8"
+    },
+    body: JSON.stringify(data),
+  }).then(res =>{
+    console.log(res);
+    return res.json()
+  }).then(myJ=>{
+    console.log(myJ); 
+  })
 
   }
     render() {
       let stockr = this.state.stocks; 
       return (
         <div className= "StockList" key='1'>
-
+        <Portfolio></Portfolio>
      <form onSubmit={this.submitData.bind(this)}> 
      <label>
        Buy: 
