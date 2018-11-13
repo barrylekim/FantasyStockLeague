@@ -245,6 +245,7 @@ router.get("/getTopPlayers", (req, res) => {
         }
     });
 });
+
 // Returns an array of all player names, you can maybe call this one and pass it to netbuy and netsell to get the top 5 players
 router.get("/getAllPlayers", (req, res) => {
     let getAllTraders = `SELECT tradername FROM trader`;
@@ -391,39 +392,27 @@ router.get("/netBuy", async (req, res) => {
     });
 });
 
-// get trader info by id, useful to display portfolio on frontend
-router.get("/getTrader/:name", (req, res) => {
-    let getTrader = `SELECT * FROM trader WHERE tradername = $1`;
-    client.query(getTrader, [req.params.name], (err, result) => {
-        if (err) {
-            res.status(500).json({ error: err });
+router.get("/getTrader/:name", async (req, res) => {
+    try {
+        let getTrader = `SELECT * FROM trader WHERE tradername = $1`;
+        let result = await client.query(getTrader, [req.params.name]);
+        if (result.rows.length === 0) {
+            res.status(404).json({message: "Trader name not found"});
         } else {
-            if (result.rows.length === 0) {
-                res.status(404).json({message: "Trader name not found"});
-            } else {
-                let portfolioID = result.rows[0].portfolioid;
-                let getPortfolio = `SELECT companyid, numofshares, industry, companyname, value, shares FROM contains NATURAL JOIN company NATURAL JOIN price WHERE portfolioID = $1`;
-                client.query(getPortfolio, [portfolioID], (err, companys) => {
-                    if (err) {
-                        res.status(500).json({ error: err });
-                    } else {
-                        let getwatchList = `SELECT companyID FROM trader NATURAL JOIN includes WHERE tradername = $1`;
-                        client.query(getwatchList, [req.params.name], (err, response) => {
-                            if (err) {
-                                res.status(500).json({error: err});
-                            } else {
-                                res.status(200).json({
-                                    trader: result.rows[0],
-                                    portfolio: companys.rows,
-                                    watchlist: response.rows
-                                });
-                            }
-                        });
-                    }
-                });
-            }
+            let portfolioID = result.rows[0].portfolioid;
+            let getPortfolio = `SELECT companyid, numofshares, industry, companyname, value, shares FROM contains NATURAL JOIN company NATURAL JOIN price WHERE portfolioID = $1`;
+            let companys = await client.query(getPortfolio, [portfolioID]);
+            let getwatchList = `SELECT companyID FROM trader NATURAL JOIN includes WHERE tradername = $1`;
+            let response = await client.query(getwatchList, [req.params.name]);
+            res.status(200).json({
+                trader: result.rows[0],
+                portfolio: companys.rows,
+                watchlist: response.rows
+            });
         }
-    });
+    } catch (err) {
+        res.status(500).json({ error: err });
+    }
 });
 
 //Below are for testing
