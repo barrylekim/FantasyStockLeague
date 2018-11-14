@@ -62,7 +62,7 @@ class App extends Component {
             let sum = 0; 
             myJ.portfolio.forEach(el =>{
               console.log(el);
-              let r = parseInt(el.value,10)*parseInt(el.numofshares,10);
+              let r = parseInt(el.value,10)*parseInt(el.shares,10);
               sum = sum+ r; 
             })
             console.log(sum);
@@ -96,13 +96,16 @@ class App extends Component {
     return (
      
       <div className="App">
+      <header className="StockHead">
+        StockWatch
+      </header>
        {!this.state.id ?  <form><div class="box">
-<h1>Dashboard</h1>
+
 <label className="lab">Login ID:</label>
               <input class='email'type="name" value={this.state.value} onChange={this.handleChange.bind(this)} />
        <a href="#"><div onClick={this.submitData} class="btn">Sign In</div></a> 
 <a href="#"><div onClick={this.signupData} id="btn2">Sign Up</div></a> </div></form>: 
-[   <Leaderboard/>,
+[   <Leaderboard className="LeaderBoard"/>,
     <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} />
    ]}
         <header className="App-header">

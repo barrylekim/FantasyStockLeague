@@ -7,6 +7,7 @@
          this.state = {
              stocks: props.stocks,
              query: "",
+             name: props.name
          }
      }
      handleChangeBuy(id,event) {
@@ -45,7 +46,7 @@
       }).then(myt=>{
         console.log(myt);
         let st = this.state;
-        fetch('http://localhost:3005/getTrader/'+st.value).then(res2 =>{
+        fetch('http://localhost:3005/getTrader/'+st.name).then(res2 =>{
           console.log(res2);
           if(res2.status===500){
             console.log(res2); 
@@ -67,6 +68,7 @@
             console.log(sum);
             st.worth = sum; 
       this.setState(st);
+      this.componentDidMount(); 
         }) 
         
       })
@@ -78,6 +80,15 @@
          let stocksr = this.state.stocks; 
          return(
              <div>
+                 <form onSubmit={this.submitDataBuy.bind(this)}> 
+     <label>
+       Buy: 
+    <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("comp",e)} value = {this.state.query}/>
+      #Shares:
+    <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("price",e)} value={this.state.queryP}/>  
+    <input type="submit" value="Submit"/>
+    </label>            
+    </form>
             {stocksr.map((value,index)=>{
                 return(<li key={index}>
                 <Stock name={value.companyid}/></li>)

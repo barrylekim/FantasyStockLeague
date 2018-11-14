@@ -13,9 +13,8 @@ class JasonContainer extends Component {
             user:props.id,
             Watchlist: props.Watchlist,
             name: props.name,
-            worth:null,
-            funds:null
-
+            worth:props.worth,
+            funds:props.funds
         }
         this.handlechange = this.handlechange.bind(this); 
         this.renderSwitch = this.renderSwitch.bind(this);
@@ -31,10 +30,9 @@ class JasonContainer extends Component {
         }
     }
     renderSwitch(param){
-
         switch (param){
             case("p"):
-            return <Portfolio stocks = {this.state.Portfolio}/>
+            return <Portfolio name={this.state.name} stocks = {this.state.Portfolio}/>
             break;
             case('w'):
             return <WatchList name= {this.state.name}/>
@@ -43,8 +41,7 @@ class JasonContainer extends Component {
             return <Stocklist id={this.state.user} portfolio={this.state.Portfolio}/>
             break; 
             default: 
-            return <Portfolio stocks = {this.state.Portfolio}/>
-        
+            return <Portfolio name={this.state.name} stocks = {this.state.Portfolio}/>
         }
     }
     handleChangeBuy(id,event) {
@@ -57,10 +54,10 @@ class JasonContainer extends Component {
           curr.queryP = event.target.value;
           this.setState({curr});
         }
-        
       }
      submitDataBuy(event){
         event.preventDefault();
+        var self = this; 
         let comp = this.state.query;
         let shares = this.state.queryP; 
         let id = this.state.id; 
@@ -83,7 +80,7 @@ class JasonContainer extends Component {
       }).then(myt=>{
         console.log(myt);
         let st = this.state;
-        fetch('http://localhost:3005/getTrader/'+st.value).then(res2 =>{
+        fetch('http://localhost:3005/getTrader/'+st.name).then(res2 =>{
           console.log(res2);
           if(res2.status===500){
             console.log(res2); 
@@ -99,21 +96,20 @@ class JasonContainer extends Component {
             console.log(st.Portfolio);
             myJ.portfolio.forEach(el =>{
               console.log(el);
-              let r = parseInt(el.value,10)*parseInt(el.numofshares,10);
+              let r = parseInt(el.value,10)*parseInt(el.shares,10);
               sum = sum+ r; 
             })
             console.log(sum);
             st.worth = sum; 
-      this.setState(st);
+      self.setState(st);
+
         }) 
-        
       })
-      
       }
     render(){
         let currS = this.state; 
         return(
-            <div>
+            <div className="Jason">
             <div class="btn-group" >
   <button onClick={(e)=>this.handlechange("p",e)}>Holdings</button>
   <button onClick={(e)=>this.handlechange("w",e)} >Watchlist</button>
@@ -122,9 +118,9 @@ class JasonContainer extends Component {
 <form onSubmit={this.submitDataBuy.bind(this)}> 
      <label>
        Buy: 
-    <input   onChange={(e)=>this.handleChangeBuy("comp",e)} value = {this.state.query}/>
-    NumberOfShares:
-    <input onChange={(e)=>this.handleChangeBuy("price",e)} value={this.state.queryP}/>  
+    <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("comp",e)} value = {this.state.query}/>
+      #Shares:
+    <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("price",e)} value={this.state.queryP}/>  
     <input type="submit" value="Submit"/>
     </label>            
     </form>
