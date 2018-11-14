@@ -166,6 +166,36 @@ module.exports = {
         })
       },
 
+      getAPIList: function () {
+        return new Promise(function(resolve, reject) {
+            request({
+              url: "https://ws-api.iextrading.com/1.0/ref-data/symbols",
+              method: 'GET'
+            },function(err, response, body) {
+              if (err) {
+                console.log("ERROR: " + err);
+              } else {
+                resolve(body);
+              }
+            });
+          })
+      },
+
+      testAPI: function (url) {
+        return new Promise(function(resolve, reject) {
+            request({
+              url: url,
+              method: 'GET'
+            },function(err, response, body) {
+              if (err) {
+                console.log("ERROR: " + err);
+              } else {
+                resolve(body);
+              }
+            });
+          })
+      },
+
       getPriceIds: function (priceid, amountofshares) {
         return new Promise(function (resolve, reject) {
             let findVal = `SELECT value, priceID FROM price WHERE priceID = $1`;
@@ -186,18 +216,18 @@ module.exports = {
         });
     },
 
-    checkTraderFunds: function (TID, price) {
-        let find = `SELECT funds FROM trader WHERE traderid = $1`;
-        client.query(find, [TID], (err , response) => {
-            if (err) {
-                throw err;
+    checkTraderFunds: async function (TID, price) {
+        try {
+            let find = `SELECT funds FROM trader WHERE traderid = $1`;
+            let response = await client.query(find, [TID])
+            let funds = response.rows[0].funds;
+            if (funds - price >= 0) {
+                return true;
             } else {
-                let funds = response.rows[0].funds;
-                if (funds - price >= 0) {
-                    return true;
-                }
                 return false;
             }
-        });
+        } catch (err) {
+            throw err;
+        }
     }
 }
