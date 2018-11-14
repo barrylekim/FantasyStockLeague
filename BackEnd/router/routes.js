@@ -9,81 +9,111 @@ let IDMap = {};
 
 helper.start();
 
-router.get("/t", async (req, res) => {
-    let result = await helper.testAPI("https://api.iextrading.com/1.0/stock/AAPL/company");
-    console.log(result);
-});
-
-router.get("/all", async (req, res) => {
-    try {
-        let result = await helper.testAPI("https://ws-api.iextrading.com/1.0/ref-data/symbols");
-        let promises = [];
-        JSON.parse(result).forEach((company) => {
-            let symbol = company.symbol;
-            console.log(symbol);
-            let promise = helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then((response) => {
-                let name = JSON.parse(response).companyName;
-                console.log(name);
-            });
-            promises.push(promise);
-            // let industry = JSON.parse(response).industry;
-            // let data = await helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/chart/date/20181016?chartInterval=30");
-            // let json = JSON.parse(data)[0];
-            // let price = parseInt(json.average);
-            // let volume = parseInt(json.volume);
-            // let id = await helper.createPriceEntry(price);
-    
-            // let find = `SELECT * from company WHERE companyid = $1`;
-            // let check = await client.query(find, [symbol]);
-            // if (check.rows.length === 0) {
-            //     let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-            //     await client.query(addQuery, [symbol, volume, industry, name, id]);   
-            // } else {
-            //     let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
-            //     await client.query(updateCompany, [id, volume, symbol]);
-            // }
+test = function (symbol) {
+    return new Promise((res, rej) => {
+        helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/chart/date/20181016?chartInterval=30").then((data) => {
+            res(data);
         });
-        Promise.all(promises).then(() => {
-            console.log("yay");
-        });
-    } catch (err) {
-        console.log (err);
-        res.status(500).json({ error: err });
-    }
-})
+    })
+}
 
-router.get("/init", async (req, res) => {
-    let arr = ["AAPL", "GOOG", "AMZN", "MSFT", "NFLX", "GS", "SBUX", "NKE"];
-    let names = ["Apple", "Google", "Amazon", "Microsoft", "Goldman Sachs", "Netflix", "Starbucks", "Nike"];
-    let industries = ["technology", "technology", "technology", "technology", "entertainment", "Finance", "Coffee shop", "Sports"];
+router.get("/init", (req, res) => {
+    let arr = ["GOOG", "AAPL", "NFLX", "SPOT", "AMD", "MSFT", "GS", "ADBE", "SNE", "AMZN"];
     let promises = [];
-    for (let i = 0; i < arr.length; i++) {
-        let find = `SELECT * from company WHERE companyid = $1`
-        client.query(find, [arr[i]], (err, res) => {
-            if (err) {
-                res.status(500).json({ error: err });
-            } else {
-                if (res.rows.length === 0) {
-                    let promise = helper.getAPI(arr[i]).then((result) => {
-                        let json = JSON.parse(result)[0];
-                        let price = parseInt(json.average);
-                        let volume = parseInt(json.volume);
-                        helper.createPriceEntry(price).then((id) => {
-                            let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-                            client.query(addQuery, [arr[i], volume, industries[i], names[i], id], (err, result) => {
-                                if (err) {
-                                    res.status(500).json({ error: err });
+    for (var i = 0; i < arr.length; i++) {
+        let symbol = arr[i];
+        let promise = helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then((response) => {
+            try {
+                let name = JSON.parse(response).companyName;
+                let industry = JSON.parse(response).industry;
+                return test(symbol).then(async (data) => {
+                    try {
+                        if (data !== undefined) {
+                            let json = JSON.parse(data)[0];
+                            if (json !== undefined && !isNaN(json.marketAverage) && !isNaN(json.marketVolume)) {
+                                let price = parseInt(json.marketAverage);
+                                let volume = parseInt(json.marketVolume);
+                                let id = await helper.createPriceEntry(price);
+                                let find = `SELECT * from company WHERE companyid = $1`;
+                                let check = await client.query(find, [symbol]);
+                                if (check.rows.length === 0) {
+                                    if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0) {
+                                        let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+                                        await client.query(addQuery, [symbol, volume, industry, name, id]);
+                                    }
+                                } else {
+                                    if (typeof symbol === "string") {
+                                        let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
+                                        await client.query(updateCompany, [id, volume, symbol]);   
+                                    }
                                 }
-                            });
-                        });
-                    });
-                    promises.push(promise);
-                }
+                            }
+                        }
+                    } catch (err) {
+                        console.log(err);
+                    }
+                });
+            } catch (err) {
+                // failed to parse, file skipped
             }
         });
+        promises.push(promise);  
     }
     Promise.all(promises).then(() => {
-        res.status(200).json({message: "Companies added"});
+        res.status(200).send("done");
+    });
+})
+
+router.get("/final", async (req, res) => {
+    let result = await helper.testAPI("https://ws-api.iextrading.com/1.0/ref-data/symbols");
+    let promises = [];
+    let json = JSON.parse(result);
+    for (var i = 0; i < json.length; i++) {
+        if (i % 100 === 0) {
+            let companyObj = json[i];
+            let symbol = companyObj.symbol;
+            console.log(symbol);
+            let promise = helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then((response) => {
+                try {
+                    let name = JSON.parse(response).companyName;
+                    let industry = JSON.parse(response).industry;
+                    return test(symbol).then(async (data) => {
+                        try {
+                            if (data !== undefined) {
+                                let json = JSON.parse(data)[0];
+                                if (json !== undefined && !isNaN(json.marketAverage) && !isNaN(json.marketVolume)) {
+                                    let price = parseInt(json.marketAverage);
+                                    let volume = parseInt(json.marketVolume);
+                                    let id = await helper.createPriceEntry(price);
+                                    let find = `SELECT * from company WHERE companyid = $1`;
+                                    let check = await client.query(find, [symbol]);
+                                    if (check.rows.length === 0) {
+                                        if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0) {
+                                            let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+                                            await client.query(addQuery, [symbol, volume, industry, name, id]);
+                                        }
+                                    } else {
+                                        if (typeof symbol === "string") {
+                                            let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
+                                            await client.query(updateCompany, [id, volume, symbol]);   
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            console.log(err);
+                        }
+                    });
+                } catch (err) {
+                    console.log("big fail");
+                }
+            });
+            promises.push(promise);       
+        }
+    }
+    Promise.all(promises).then(() => {
+        console.log("done");
+        res.status(200).send("done");
     });
 });
 
@@ -112,7 +142,7 @@ router.get("/updatePrices", (req, res) => {
                 promises.push(promise);
             });
             Promise.all(promises).then(() => {
-                res.status(200).json({message: "Prices updated"});
+                res.status(200).json({ message: "Prices updated" });
             });
         }
     });
@@ -141,7 +171,7 @@ router.get("/largestShare", (req, res) => {
             res.status(500).json({ error: err });
         } else {
             let maxTrader = result.rows[0].traderid;
-            res.status(200).json({traderID: maxTrader});
+            res.status(200).json({ traderID: maxTrader });
         }
     });
 });
@@ -190,7 +220,7 @@ router.get("/invested/:companyid", (req, res) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
-             res.status(200).send(response.rows);
+            res.status(200).send(response.rows);
         }
     });
 });
@@ -227,7 +257,7 @@ router.post("/buy", async (req, res) => {
                 await helper.checkContains(portfolioID, CID, 1, numOfShares);
                 res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
             } else {
-                res.status(400).json({ error: "Trader does not have enough funds"});
+                res.status(400).json({ error: "Trader does not have enough funds" });
             }
         }
     } catch (err) {
@@ -258,9 +288,9 @@ router.post("/sell", async (req, res) => {
 });
 
 generateID = function () {
-    let id = Math.floor((Math.random() * 1000)).toString();
+    let id = Math.floor((Math.random() * 100000)).toString();
     while (IDMap[id]) {
-        id = Math.floor((Math.random() * 1000)).toString();
+        id = Math.floor((Math.random() * 100000)).toString();
     }
     return id;
 }
@@ -466,14 +496,14 @@ router.post("/deleteTrader/:id", (req, res) => {
             console.log(err);
         }
         if (result.rows.length === 0) {
-            res.status(400).json({error: "id does not exist"});
+            res.status(400).json({ error: "id does not exist" });
         } else {
             let deleteRow = `DELETE FROM trader WHERE traderID = $1`;
             client.query(deleteRow, [req.params.id], (err, response) => {
                 if (err) {
                     console.log(err);
                 } else {
-                    res.status(200).json({message: "trader deleted"});
+                    res.status(200).json({ message: "trader deleted" });
                 }
             })
         }
@@ -541,7 +571,7 @@ router.get("/getTrader/:name", async (req, res) => {
         let getTrader = `SELECT * FROM trader WHERE tradername = $1`;
         let result = await client.query(getTrader, [req.params.name]);
         if (result.rows.length === 0) {
-            res.status(404).json({error: "Trader name not found"});
+            res.status(404).json({ error: "Trader name not found" });
         } else {
             let portfolioID = result.rows[0].portfolioid;
             let getPortfolio = `SELECT companyid, numofshares, industry, companyname, value, shares FROM contains NATURAL JOIN company NATURAL JOIN price WHERE portfolioID = $1`;
