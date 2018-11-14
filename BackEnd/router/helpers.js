@@ -1,3 +1,4 @@
+var fs = require("fs");
 var request = require('request');
 var pg = require("pg");
 var client = new pg.Client(process.env.CONNECTIONSTR);
@@ -6,7 +7,7 @@ client.connect();
 module.exports = {
     start: function() {
         let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value INTEGER)`;
-        let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(4) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(32), companyName VARCHAR(32), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
+        let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(6) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(400), companyName VARCHAR(400), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
         let leaderBoard = `CREATE TABLE IF NOT EXISTS leaderboard(leaderboardID VARCHAR(10) NOT NULL PRIMARY KEY, numOfTraders INTEGER)`;
         let trader = `CREATE TABLE IF NOT EXISTS trader(traderID VARCHAR(10) NOT NULL PRIMARY KEY, funds INTEGER, traderName VARCHAR(12) UNIQUE, leaderboardID VARCHAR(10) NOT NULL, portfolioID VARCHAR(10) NOT NULL, FOREIGN KEY (portfolioID) REFERENCES portfolio ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY (leaderboardID) REFERENCES leaderboard ON DELETE CASCADE ON UPDATE CASCADE)`;
         let portfolio = `CREATE TABLE IF NOT EXISTS portfolio(portfolioID VARCHAR(10) NOT NULL PRIMARY KEY)`;
@@ -229,5 +230,13 @@ module.exports = {
         } catch (err) {
             throw err;
         }
+    },
+
+    test: function (symbol) {
+        return new Promise((res, rej) => {
+            helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/chart/date/20181016?chartInterval=30").then((data) => {
+                res(data);
+            });
+        })
     }
 }

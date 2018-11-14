@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Portfolio from '../Portfolio/Portfolio';
 import Stocklist from '../stockList/StockList';
-import WatchList from '../WatchList/Watchlist';
+import WatchList from '../WatchList/WatchList';
 import User from '../../components/User/User'
 import './JasonContainer.css'; 
 class JasonContainer extends Component {
