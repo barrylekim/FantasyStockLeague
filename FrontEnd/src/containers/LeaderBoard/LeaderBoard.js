@@ -30,9 +30,9 @@ class LeaderBoard extends Component{
     render(){
         let peoples = this.state.people;
         return(
-            <div>
-<header className="header--secondary">
-        <h2 class="title">Game Leaderboard</h2>
+            <div className="LeaderBoard">
+<header className="headerz">
+        <h2 class="title"> Leaderboard</h2>
     </header>
     {
               peoples.map((value,index) =>{

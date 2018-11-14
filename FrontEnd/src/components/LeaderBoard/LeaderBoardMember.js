@@ -1,8 +1,9 @@
 import React from 'react'; 
+import './Member.css'
 const Member = (props) =>{
     return (
         
-            <p>{props.name} {props.funds}</p>
+            <p className="Member">{props.name} {props.funds}</p>
         
     )
 }
