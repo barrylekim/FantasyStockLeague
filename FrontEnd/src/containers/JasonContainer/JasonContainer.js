@@ -14,7 +14,9 @@ class JasonContainer extends Component {
             Watchlist: props.Watchlist,
             name: props.name,
             worth:props.worth,
-            funds:props.funds
+            funds:props.funds,
+            query: "",
+            queryP:""
         }
         this.handlechange = this.handlechange.bind(this); 
         this.renderSwitch = this.renderSwitch.bind(this);
@@ -75,15 +77,11 @@ class JasonContainer extends Component {
         },
         body: JSON.stringify(data),
       }).then(res =>{
-        console.log(res);
         return res.json()
       }).then(myt=>{
-        console.log(myt);
         let st = this.state;
         fetch('http://localhost:3005/getTrader/'+st.name).then(res2 =>{
-          console.log(res2);
           if(res2.status===500){
-            console.log(res2); 
           }
           else
           {return res2.json();}
@@ -92,14 +90,14 @@ class JasonContainer extends Component {
             st.id = myJ.trader.traderid;
             st.funds = myJ.trader.funds;
             st.watchlist = myJ.watchlist;
+            st.Portfolio = myJ.portfolio
             let sum = 0; 
-            console.log(st.Portfolio);
+            
             myJ.portfolio.forEach(el =>{
-              console.log(el);
+              
               let r = parseInt(el.value,10)*parseInt(el.shares,10);
               sum = sum+ r; 
             })
-            console.log(sum);
             st.worth = sum; 
       self.setState(st);
 
