@@ -56,7 +56,7 @@ class StockList extends Component {
             {
               stockr.map((value,index) =>{
                 return (<li key={index}>
-                <Stock name= {value.companyname} shares= {value.numofShares} price= {value.price}/>
+                <Stock name= {value.companyid} shares= {value.numofShares} price= {value.price}/>
                 </li>)
               })
             }

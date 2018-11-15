@@ -3,7 +3,7 @@ import './Stock.css'
 const Stock = (props) =>{
     return (
         <div className="Stock">
-            <p>{props.name} {props.price} {props.shares}</p>
+            <p>{props.name}</p> <p>{props.price}</p> <p align="right">{props.shares}</p>
         </div>
     )
 }

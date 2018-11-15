@@ -86,8 +86,8 @@ class App extends Component {
       }).then(res =>{
         console.log(res);
         return res.json()
-      }).then(myJ=>{
-        console.log(myJ);
+      }).then(myJ2=>{
+        console.log(myJ2);
         fetch('http://localhost:3005/getTrader/'+st.value).then(res2 =>{
           console.log(res2);
           if(res2.status===500){
