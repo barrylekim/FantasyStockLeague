@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Stock from '../../components/Stock/Stock'
 import './StockList.css'
-import Portfolio from '../Portfolio/Portfolio';
 
 class StockList extends Component {
   constructor(props){ 

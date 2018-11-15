@@ -22,10 +22,8 @@ class LeaderBoard extends Component{
         peoplez.push(person);  
       });
       curSt.people = peoplez;
-    
       this.setState(curSt);
     })
-   
     }
     render(){
         let peoples = this.state.people;

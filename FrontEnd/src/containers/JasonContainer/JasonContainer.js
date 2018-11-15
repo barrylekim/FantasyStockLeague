@@ -8,7 +8,7 @@ class JasonContainer extends Component {
     constructor(props){
         super(props);
         this.state = {
-            currentView:"",
+            currentView:"p",
             Portfolio:props.Portfolio,
             user:props.id,
             Watchlist: props.Watchlist,
@@ -21,7 +21,10 @@ class JasonContainer extends Component {
         this.handlechange = this.handlechange.bind(this); 
         this.renderSwitch = this.renderSwitch.bind(this);
         this.submitDataBuy = this.submitDataBuy.bind(this);
-        this.handleChangeBuy = this.handleChangeBuy.bind(this);  
+        this.handleChangeBuy = this.handleChangeBuy.bind(this);
+        this.handleForm = this.handleForm.bind(this);  
+        this.submitDataWatchList = this.submitDataWatchList.bind(this); 
+        this.handleChangeWatchList = this.handleChangeWatchList.bind(this); 
     }
     handlechange(id,event){
         event.preventDefault(); 
@@ -59,10 +62,10 @@ class JasonContainer extends Component {
       }
      submitDataBuy(event){
         event.preventDefault();
-        var self = this; 
+        let self = this; 
         let comp = this.state.query;
         let shares = this.state.queryP; 
-        let id = this.state.id; 
+        let id = this.state.user; 
         let data = {
           traderID: id,
           companyID: comp,
@@ -100,10 +103,59 @@ class JasonContainer extends Component {
             })
             st.worth = sum; 
       self.setState(st);
-
         }) 
       })
       }
+      submitDataWatchList(event){
+        event.preventDefault(); 
+        let st = this.state;
+        let data = {
+            name: st.name,
+            CID: st.query
+        }
+        fetch('http://localhost:3005/addToWatchList',{
+            method: 'POST',
+            mode: 'cors',
+            credentials: 'same-origin',
+            headers:{
+              "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify(data),  
+        }).then(res =>{
+            console.log(res);
+            return res.json();
+        }).then(myJ=>{
+            console.log(myJ);
+        })
+
+    }
+    handleChangeWatchList(event){
+        let curr = this.state
+        curr.query = event.target.value; 
+        this.setState(curr); 
+    }
+handleForm(){
+  if(this.state.currentView=="p"){
+    return (<form onSubmit={this.submitDataBuy.bind(this)}> 
+    <label>
+      Buy: 
+   <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("comp",e)} value = {this.state.query}/>
+     #Shares:
+   <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("price",e)} value={this.state.queryP}/>  
+   <input type="submit" value="Submit"/>
+   </label>            
+   </form>);
+  }else{
+    return (<form onSubmit={this.submitDataWatchList.bind(this)}>
+    <label>
+        Add To Watchlist:
+        <input onChange={this.handleChangeWatchList.bind(this)} value = {this.state.query}/>
+        <input type="submit" value="Submit"/>
+    </label>
+    </form>   );
+
+  }
+}
     render(){
         let currS = this.state; 
         return(
@@ -113,17 +165,9 @@ class JasonContainer extends Component {
   <button onClick={(e)=>this.handlechange("w",e)} >Watchlist</button>
   <button onClick={(e)=>this.handlechange("s",e)}>Stocklist</button>
 </div>
-<form onSubmit={this.submitDataBuy.bind(this)}> 
-     <label>
-       Buy: 
-    <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("comp",e)} value = {this.state.query}/>
-      #Shares:
-    <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("price",e)} value={this.state.queryP}/>  
-    <input type="submit" value="Submit"/>
-    </label>            
-    </form>
      <User name={this.state.name}worth={this.state.worth} cash= {this.state.funds}/>
 {this.renderSwitch(currS.currentView)}
+{this.handleForm()}
 </div>)
 
     }

@@ -87,7 +87,31 @@ class App extends Component {
         console.log(res);
         return res.json()
       }).then(myJ=>{
-        console.log(myJ); 
+        console.log(myJ);
+        fetch('http://localhost:3005/getTrader/'+st.value).then(res2 =>{
+          console.log(res2);
+          if(res2.status===500){
+            console.log(res2); 
+          }
+          else
+          {return res2.json();}
+        }).then(myJ=>{
+          console.log(myJ);
+            st.id = myJ.trader.traderid;
+            st.Portfolio=myJ.portfolio;
+            st.funds = myJ.trader.funds;
+            st.watchlist = myJ.watchlist;
+            let sum = 0; 
+            myJ.portfolio.forEach(el =>{
+              console.log(el);
+              let r = parseInt(el.value,10)*parseInt(el.shares,10);
+              sum = sum+ r; 
+            })
+            console.log(sum);
+            st.worth = sum; 
+      this.setState(st);
+            console.log('acceptedID');
+        })  
       })
     
     }

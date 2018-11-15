@@ -4,5 +4,7 @@ li{
 .Stock{
     color:#2e2e2f;
     text-transform: uppercase;
-
+    text-align: right;
+    display:flex;    
+    align-items:center;
 }
