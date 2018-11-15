@@ -6,8 +6,8 @@ client.connect();
 
 module.exports = {
     start: function() {
-        let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value INTEGER)`;
-        let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(5) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(100), companyName VARCHAR(100), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
+        let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value REAL, changePercent REAL)`;
+        let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(5) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(100), companyName VARCHAR(150), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
         let leaderBoard = `CREATE TABLE IF NOT EXISTS leaderboard(leaderboardID VARCHAR(10) NOT NULL PRIMARY KEY, numOfTraders INTEGER)`;
         let trader = `CREATE TABLE IF NOT EXISTS trader(traderID VARCHAR(10) NOT NULL PRIMARY KEY, funds INTEGER, traderName VARCHAR(12) UNIQUE, leaderboardID VARCHAR(10) NOT NULL, portfolioID VARCHAR(10) NOT NULL, FOREIGN KEY (portfolioID) REFERENCES portfolio ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY (leaderboardID) REFERENCES leaderboard ON DELETE CASCADE ON UPDATE CASCADE)`;
         let portfolio = `CREATE TABLE IF NOT EXISTS portfolio(portfolioID VARCHAR(10) NOT NULL PRIMARY KEY)`;
@@ -136,12 +136,13 @@ module.exports = {
         }
     },
 
-    createPriceEntry: function (price) {
+    createPriceEntry: function (price, changePercent) {
         return new Promise((resolve, reject) => {
             let id = generateID();
             let date = new Date();
-            let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
-            client.query(addPrice, [id, date.toString(), price], (err, result) => {
+            if (typeof price === "number" && typeof changePercent === "number");
+            let addPrice = `INSERT INTO price(priceID, pDate, value, changePercent) values($1, $2, $3, $4)`;
+            client.query(addPrice, [id, date.toString(), price, changePercent], (err, result) => {
                 if (err) {
                     reject(err);
                 } else {

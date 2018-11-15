@@ -35,7 +35,7 @@ Provide username of trader. Username must be unique.
 
 ```json
 {
-    "message": "Added trader + updated portfolio and leaderboard table + watchlist yeee"
+    "traderid": 41904
 }
 ```
 

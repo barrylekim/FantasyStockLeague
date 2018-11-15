@@ -11,51 +11,49 @@ helper.start();
 
 test = function (symbol) {
     return new Promise((res, rej) => {
-        helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/chart/date/20181016?chartInterval=30").then((data) => {
+        //helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/chart/date/20181016?chartInterval=30").then((data) => {
+        helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/batch?types=quote&range=1m&last=1").then((data) => {
             res(data);
         });
-    })
+    });
 }
 
-router.get("/init", (req, res) => {
+router.get("/init", async (req, res) => {
     let arr = ["GOOG", "AAPL", "NFLX", "SPOT", "AMD", "MSFT", "GS", "ADBE", "SNE", "AMZN"];
     let promises = [];
     for (var i = 0; i < arr.length; i++) {
         let symbol = arr[i];
-        let promise = helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then((response) => {
+        let promise = helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then(async (data) => {
             try {
-                let name = JSON.parse(response).companyName;
-                let industry = JSON.parse(response).industry;
-                return test(symbol).then(async (data) => {
+                let industry = JSON.parse(data).industry;
+                return test(symbol).then(async (response) => {
                     try {
-                        if (data !== undefined) {
-                            let json = JSON.parse(data)[0];
-                            if (json !== undefined && !isNaN(json.marketAverage) && !isNaN(json.marketVolume)) {
-                                let price = parseInt(json.marketAverage);
-                                let volume = parseInt(json.marketVolume);
-                                let id = await helper.createPriceEntry(price);
-                                let find = `SELECT * from company WHERE companyid = $1`;
-                                let check = await client.query(find, [symbol]);
-                                if (check.rows.length === 0) {
-                                    if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0) {
-                                        let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-                                        await client.query(addQuery, [symbol, volume, industry, name, id]);
-                                    }
-                                } else {
-                                    if (typeof symbol === "string") {
-                                        let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
-                                        await client.query(updateCompany, [id, volume, symbol]);   
-                                    }
-                                }
+                        let json = JSON.parse(response).quote;
+                        let name = json.companyName;
+                        let price = json.latestPrice;
+                        let volume = json.latestVolume;
+                        let changePercent = json.changePercent;
+                        let id = await helper.createPriceEntry(price, changePercent);
+                        let find = `SELECT * from company WHERE companyid = $1`;
+                        let check = await client.query(find, [symbol]);
+                        if (check.rows.length === 0) {
+                            if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0 && typeof volume === "number") {
+                                let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+                                await client.query(addQuery, [symbol, volume, industry, name, id]);
+                            }
+                        } else {
+                            if (typeof symbol === "string" && typeof volume === "number") {
+                                let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
+                                await client.query(updateCompany, [id, volume, symbol]);   
                             }
                         }
                     } catch (err) {
                         console.log(err);
                     }
-                });
+                })
             } catch (err) {
-                // failed to parse, file skipped
-            }
+                console.log(err);
+            } 
         });
         promises.push(promise);  
     }
@@ -69,45 +67,40 @@ router.get("/final", async (req, res) => {
     let promises = [];
     let json = JSON.parse(result);
     for (var i = 0; i < json.length; i += 100) {
-        let companyObj = json[i];
-        let symbol = companyObj.symbol;
-        console.log(symbol);
-        let promise = helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then((response) => {
+        let symbol = json[i].symbol;
+        let promise = helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then(async (data) => {
             try {
-                let name = JSON.parse(response).companyName;
-                let industry = JSON.parse(response).industry;
-                return test(symbol).then(async (data) => {
+                let industry = JSON.parse(data).industry;
+                return test(symbol).then(async (response) => {
                     try {
-                        if (data !== undefined) {
-                            let json = JSON.parse(data)[0];
-                            if (json !== undefined && !isNaN(json.marketAverage) && !isNaN(json.marketVolume)) {
-                                let price = parseInt(json.marketAverage);
-                                let volume = parseInt(json.marketVolume);
-                                let id = await helper.createPriceEntry(price);
-                                let find = `SELECT * from company WHERE companyid = $1`;
-                                let check = await client.query(find, [symbol]);
-                                if (check.rows.length === 0) {
-                                    if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0) {
-                                        let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-                                        await client.query(addQuery, [symbol, volume, industry, name, id]);
-                                    }
-                                } else {
-                                    if (typeof symbol === "string") {
-                                        let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
-                                        await client.query(updateCompany, [id, volume, symbol]);   
-                                    }
-                                }
+                        let json = JSON.parse(response).quote;
+                        let name = json.companyName;
+                        let price = json.latestPrice;
+                        let volume = json.latestVolume;
+                        let changePercent = json.changePercent;
+                        let id = await helper.createPriceEntry(price, changePercent);
+                        let find = `SELECT * from company WHERE companyid = $1`;
+                        let check = await client.query(find, [symbol]);
+                        if (check.rows.length === 0) {
+                            if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0 && typeof volume === "number") {
+                                let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+                                await client.query(addQuery, [symbol, volume, industry, name, id]);
+                            }
+                        } else {
+                            if (typeof symbol === "string" && typeof volume === "number") {
+                                let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
+                                await client.query(updateCompany, [id, volume, symbol]);   
                             }
                         }
                     } catch (err) {
                         console.log(err);
                     }
-                });
+                })
             } catch (err) {
-                console.log("big fail");
-            }
+                console.log(err);
+            } 
         });
-        promises.push(promise);       
+        promises.push(promise);    
     }
     Promise.all(promises).then(() => {
         console.log("done");
@@ -363,7 +356,7 @@ router.post("/addTrader", (req, res) => {
                                         if (err1) {
                                             res.status(500).json({ error: err1 });
                                         } else {
-                                            res.send("Added trader + updated portfolio and leaderboard table + watchlist yeee");
+                                            res.status(200).json({traderid: TID});
                                         }
                                     });
                                 }
