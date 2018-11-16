@@ -95,9 +95,7 @@ class JasonContainer extends Component {
             st.watchlist = myJ.watchlist;
             st.Portfolio = myJ.portfolio
             let sum = 0; 
-            
             myJ.portfolio.forEach(el =>{
-              
               let r = parseInt(el.value,10)*parseInt(el.shares,10);
               sum = sum+ r; 
             })
