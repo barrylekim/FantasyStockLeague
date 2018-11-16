@@ -49,6 +49,17 @@ router.get("/traderAll", (req, res) => {
     })
 });
 
+router.get("/companyHighest", (req, res) => {
+    let select = `SELECT companyid, numofshares, industry, companyname, pdate, value, changepercent FROM company NATURAL JOIN price ORDER BY value DESC`;
+    client.query(select, (err, response) => {
+        if (err) {
+            console.log(err);
+        } else {
+             res.send(response.rows);
+        }
+    });
+});
+
 // return traderID and companyID of the trader with the largest shares the given company
 router.get("/largestShare", (req, res) => {
     let select = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID ORDER BY total DESC`;
@@ -131,7 +142,7 @@ router.post("/buy", async (req, res) => {
         let numOfShares = req.body.numOfShares;
         let company = await helper.getCompanyByID(CID);
         if (company.rows.length === 0) {
-            res.status(400).json({ error: "Invalid CompanyID" });
+            res.status(404).json({ error: "Invalid CompanyID" });
         } else {
             let priceID = company.rows[0].priceid;
             let price = await helper.getValue(priceID);
