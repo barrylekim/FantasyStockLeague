@@ -49,6 +49,17 @@ router.get("/traderAll", (req, res) => {
     })
 });
 
+router.get("/companyHighest", (req, res) => {
+    let select = `SELECT companyid, numofshares, industry, companyname, pdate, value, changepercent FROM company NATURAL JOIN price ORDER BY value DESC`;
+    client.query(select, (err, response) => {
+        if (err) {
+            console.log(err);
+        } else {
+             res.send(response.rows);
+        }
+    });
+});
+
 // return traderID and companyID of the trader with the largest shares the given company
 router.get("/largestShare", (req, res) => {
     let select = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID ORDER BY total DESC`;
@@ -130,23 +141,37 @@ router.post("/buy", async (req, res) => {
         let CID = req.body.companyID;
         let numOfShares = req.body.numOfShares;
         let company = await helper.getCompanyByID(CID);
+        console.log("1");
         if (company.rows.length === 0) {
-            res.status(400).json({ error: "Invalid CompanyID" });
+            res.status(404).json({ error: "Invalid CompanyID" });
         } else {
             let priceID = company.rows[0].priceid;
             let price = await helper.getValue(priceID);
+            console.log("2");
+
             let result = await helper.checkTraderFunds(TID, price);
+            console.log("3");
+
             if (result) {
                 await helper.addTransaction(TID, CID, priceID, 1, numOfShares);
+                console.log("4");
+
                 await helper.updateFunds(TID, price, numOfShares, 1);
+                console.log("5");
+
                 let portfolioID = await helper.getPortfolioID(TID);
+                console.log("6");
+
                 await helper.checkContains(portfolioID, CID, 1, numOfShares);
+                console.log("7");
+
                 res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
             } else {
                 res.status(400).json({ error: "Trader does not have enough funds" });
             }
         }
     } catch (err) {
+        console.log(err);
         res.status(500).json({ error: err });
     }
 });

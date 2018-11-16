@@ -31,7 +31,7 @@
     transform: rotate(360deg);
   }
 }
-.box{
+.box {
   
   background-color:white;
   width:50%;
@@ -46,7 +46,7 @@
 
 }
 
-.email{
+.email {
   background:#ecf0f1;
   border: #ccc 1px solid;
   border-bottom: #ccc 2px solid;
