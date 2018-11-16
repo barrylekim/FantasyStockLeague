@@ -132,12 +132,7 @@ class App extends Component {
 [   <Leaderboard className="LeaderBoard"/>,
     <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} />
    ]}
-        <header className="App-header">
-          <p>
-            StockWatch
-          </p>
-          
-        </header>
+        
       </div>
     );
   }
