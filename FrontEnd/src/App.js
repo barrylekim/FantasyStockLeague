@@ -117,43 +117,28 @@ class App extends Component {
     }
   render() {
     return (
-     
       <div className="App">
         <header className="StockHead">
           StockWatch
       </header>
-<<<<<<< HEAD
         {!this.state.id ? 
-        <form><div class="box">
-          <label className="lab">Login ID:</label>
-          <input class='email' type="name" value={this.state.value} onChange={this.handleChange.bind(this)} />
-          <a href="#"><div onClick={this.submitData} class="btn">Sign In</div></a>
-          <a href="#"><div onClick={this.signupData} id="btn2">Sign Up</div></a>
-        </div></form> :
-          [<Leaderboard className="LeaderBoard" />,
-          <JasonContainer worth={this.state.worth} funds={this.state.funds} Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} />
-          ]}
-        <header className="App-header">
-          <p>
-            StockWatch
-          </p>
-
-        </header>
-=======
-        {!this.state.id ? <form><div class="box">
-
-<label className="lab">Login ID:</label>
-              <input class='email'type="name" value={this.state.value} onChange={this.handleChange.bind(this)} />
-       <a href="#"><div onClick={this.submitData} class="btn">Sign In</div></a> 
-<a href="#"><div onClick={this.signupData} id="btn2">Sign Up</div></a> </div></form>: 
-[   <Leaderboard className="LeaderBoard"/>,
+        <form>
+          <div class="box">
+            <label className="lab">Login ID:</label>
+            <input class='email'type="name" value={this.state.value} onChange={this.handleChange.bind(this)} />
+            <a href="#">
+            <div onClick={this.submitData} class="btn">Sign In</div>
+            </a> 
+            <a href="#">
+            <div onClick={this.signupData} id="btn2">Sign Up</div>
+            </a> 
+          </div>
+        </form>: 
+    [<Leaderboard className="LeaderBoard"/>,
     <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} />
    ]}
-        
->>>>>>> 0b864b227081f8b9dba4e5739f2bbe536d62da06
-      </div>
+   </div>
     );
   }
 }
-
 export default App;

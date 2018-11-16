@@ -10,21 +10,17 @@
              name: props.name
          }
      }
-
-
      componentWillReceiveProps(nextProps) {
       let curr = this.state; 
       curr.stocks=nextProps.stocks;
       this.setState({ curr});  
     }   
-     
      render(){
          let self = this
          console.log(self.state);
          let stocksr = this.state.stocks; 
          return(
              <div>
-               
                <table>
   <tr>
     <th className= "Primary">Company</th>
@@ -32,8 +28,6 @@
     <th className= "Primary">Total Value</th>
   </tr>
 
-
-               
                {stocksr.map((value,index)=>{
                 return(<tr>
                   <td>{value.companyid}</td>
