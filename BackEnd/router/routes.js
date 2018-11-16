@@ -1,112 +1,14 @@
 const express = require("express");
 var router = express.Router();
-var helper = require("./helpers");
+const helper = require("./helpers");
+const init = require("./init");
 var pg = require("pg");
 var client = new pg.Client(process.env.CONNECTIONSTR);
 client.connect();
 let startingFund = 30000;
 let IDMap = {};
 
-helper.start();
-
-test = function (symbol) {
-    return new Promise((res, rej) => {
-        //helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/chart/date/20181016?chartInterval=30").then((data) => {
-        helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/batch?types=quote&range=1m&last=1").then((data) => {
-            res(data);
-        });
-    });
-}
-
-router.get("/init", async (req, res) => {
-    let arr = ["GOOG", "AAPL", "NFLX", "SPOT", "AMD", "MSFT", "GS", "ADBE", "SNE", "AMZN"];
-    let promises = [];
-    for (var i = 0; i < arr.length; i++) {
-        let symbol = arr[i];
-        let promise = helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then(async (data) => {
-            try {
-                let industry = JSON.parse(data).industry;
-                return test(symbol).then(async (response) => {
-                    try {
-                        let json = JSON.parse(response).quote;
-                        let name = json.companyName;
-                        let price = json.latestPrice;
-                        let volume = json.latestVolume;
-                        let changePercent = json.changePercent;
-                        let id = await helper.createPriceEntry(price, changePercent);
-                        let find = `SELECT * from company WHERE companyid = $1`;
-                        let check = await client.query(find, [symbol]);
-                        if (check.rows.length === 0) {
-                            if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0 && typeof volume === "number") {
-                                let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-                                await client.query(addQuery, [symbol, volume, industry, name, id]);
-                            }
-                        } else {
-                            if (typeof symbol === "string" && typeof volume === "number") {
-                                let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
-                                await client.query(updateCompany, [id, volume, symbol]);   
-                            }
-                        }
-                    } catch (err) {
-                        console.log(err);
-                    }
-                })
-            } catch (err) {
-                console.log(err);
-            } 
-        });
-        promises.push(promise);  
-    }
-    Promise.all(promises).then(() => {
-        res.status(200).send("done");
-    });
-})
-
-router.get("/final", async (req, res) => {
-    let result = await helper.testAPI("https://ws-api.iextrading.com/1.0/ref-data/symbols");
-    let promises = [];
-    let json = JSON.parse(result);
-    for (var i = 0; i < json.length; i += 100) {
-        let symbol = json[i].symbol;
-        let promise = helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then(async (data) => {
-            try {
-                let industry = JSON.parse(data).industry;
-                return test(symbol).then(async (response) => {
-                    try {
-                        let json = JSON.parse(response).quote;
-                        let name = json.companyName;
-                        let price = json.latestPrice;
-                        let volume = json.latestVolume;
-                        let changePercent = json.changePercent;
-                        let id = await helper.createPriceEntry(price, changePercent);
-                        let find = `SELECT * from company WHERE companyid = $1`;
-                        let check = await client.query(find, [symbol]);
-                        if (check.rows.length === 0) {
-                            if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0 && typeof volume === "number") {
-                                let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-                                await client.query(addQuery, [symbol, volume, industry, name, id]);
-                            }
-                        } else {
-                            if (typeof symbol === "string" && typeof volume === "number") {
-                                let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
-                                await client.query(updateCompany, [id, volume, symbol]);   
-                            }
-                        }
-                    } catch (err) {
-                        console.log(err);
-                    }
-                })
-            } catch (err) {
-                console.log(err);
-            } 
-        });
-        promises.push(promise);    
-    }
-    Promise.all(promises).then(() => {
-        console.log("done");
-        res.status(200).send("done");
-    });
-});
+init.start();
 
 //given traderID, return new stories about companies in their watchlist + portfolio
 // Join trader, includes, contains, and company
@@ -118,7 +20,7 @@ router.get("/news/:traderid", async (req, res) => {
         let stories = [];
         result.rows.forEach(async (stock) => {
             console.log(stock.companyname);
-            let promise = helper.testAPI("https://newsapi.org/v2/everything?q=" + stock.companyname + "%20Inc.&from=2018-10-14&sortBy=publishedAt&apiKey=" + process.env.APIKEY).then((response) => {
+            let promise = helper.getAPI("https://newsapi.org/v2/everything?q=" + stock.companyname + "%20Inc.&from=2018-10-14&sortBy=publishedAt&apiKey=" + process.env.APIKEY).then((response) => {
                 let article = JSON.parse(response).articles[0];
                 stories.push(article);
             });
