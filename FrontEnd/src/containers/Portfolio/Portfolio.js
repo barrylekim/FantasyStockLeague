@@ -24,16 +24,24 @@
          let stocksr = this.state.stocks; 
          return(
              <div>
-               <thead className="TableH">
-               <div className= "Primary" >Company</div>
-               <div className= "Primary">Shares</div>
-               <div className= "Primary">Total value</div>
-               </thead>
-            {stocksr.map((value,index)=>{
-                return(<li key={index}>
-                <Stock name={value.companyid} price={value.value} shares={value.shares}/></li>)
+               
+               <table>
+  <tr>
+    <th className= "Primary">Company</th>
+    <th className= "Primary">Shares</th>
+    <th className= "Primary">Total Value</th>
+  </tr>
+
+
+               
+               {stocksr.map((value,index)=>{
+                return(<tr>
+                  <td>{value.companyid}</td>
+                  <td>{value.value}</td>
+                  <td>{value.shares}</td>
+                </tr>)
             })}
-     
+     </table>
              </div>
          )
      }
