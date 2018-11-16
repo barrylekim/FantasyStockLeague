@@ -80,5 +80,10 @@ module.exports = {
         await addBigCompanies();
         await addAPICompanies();
         return;
+    },
+
+    update: async function() {
+        await addBigCompanies();
+        await addAPICompanies();
     }
 }

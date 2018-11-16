@@ -10,6 +10,12 @@ let IDMap = {};
 
 init.start();
 
+
+router.get("/updatePrice", async (req, res) => {
+    await init.update();
+    res.status(200).send("Company prices updated");
+});
+
 //given traderID, return new stories about companies in their watchlist + portfolio
 // Join trader, includes, contains, and company
 router.get("/news/:traderid", async (req, res) => {
