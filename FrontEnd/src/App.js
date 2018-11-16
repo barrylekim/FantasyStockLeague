@@ -120,10 +120,10 @@ class App extends Component {
     return (
      
       <div className="App">
-      <header className="StockHead">
-        StockWatch
+        <header className="StockHead">
+          StockWatch
       </header>
-       {!this.state.id ?  <form><div class="box">
+        {!this.state.id ? <form><div class="box">
 
 <label className="lab">Login ID:</label>
               <input class='email'type="name" value={this.state.value} onChange={this.handleChange.bind(this)} />

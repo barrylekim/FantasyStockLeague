@@ -16,7 +16,7 @@ Run `npm init` to start the project.
 
 ## Documentation
 
-TBD
+https://github.com/304MarketWatch/FantasyStockLeague/tree/master/BackEnd/docs
 
 ## Copyright and License
 Copyright 2018 GitHub, Inc.

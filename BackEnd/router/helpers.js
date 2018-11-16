@@ -1,13 +1,13 @@
-var fs = require("fs");
 var request = require('request');
+var helper = require("./helpers");
 var pg = require("pg");
 var client = new pg.Client(process.env.CONNECTIONSTR);
 client.connect();
 
 module.exports = {
-    start: function() {
-        let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value INTEGER)`;
-        let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(5) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(100), companyName VARCHAR(100), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
+    createTables: function() {
+        let price = `CREATE TABLE IF NOT EXISTS price(priceID VARCHAR(10) NOT NULL PRIMARY KEY, pDate VARCHAR(100), value REAL, changePercent REAL)`;
+        let company = `CREATE TABLE IF NOT EXISTS company(companyID VARCHAR(6) NOT NULL PRIMARY KEY, numOfShares INTEGER, industry VARCHAR(100), companyName VARCHAR(200), priceID VARCHAR(10) NOT NULL, FOREIGN KEY (priceID) REFERENCES price(priceID))`;
         let leaderBoard = `CREATE TABLE IF NOT EXISTS leaderboard(leaderboardID VARCHAR(10) NOT NULL PRIMARY KEY, numOfTraders INTEGER)`;
         let trader = `CREATE TABLE IF NOT EXISTS trader(traderID VARCHAR(10) NOT NULL PRIMARY KEY, funds INTEGER, traderName VARCHAR(12) UNIQUE, leaderboardID VARCHAR(10) NOT NULL, portfolioID VARCHAR(10) NOT NULL, FOREIGN KEY (portfolioID) REFERENCES portfolio ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY (leaderboardID) REFERENCES leaderboard ON DELETE CASCADE ON UPDATE CASCADE)`;
         let portfolio = `CREATE TABLE IF NOT EXISTS portfolio(portfolioID VARCHAR(10) NOT NULL PRIMARY KEY)`;
@@ -22,19 +22,17 @@ module.exports = {
             client.query(query, (err, result) => {
                 if (err) {
                     console.log(query + err);
-                } else {
-                    console.log(result);
                 }
             })
         });
-        
+    },
+
+    createLeaderboard: function() {
         let leaderboardID = 1;
         let addLeaderboard = `INSERT INTO leaderboard(leaderboardID, numOfTraders) values ($1, $2)`
         client.query(addLeaderboard, [leaderboardID, 0], (err, result) => {
             if (err) {
                 console.log(err.detail);
-            } else {
-                console.log(result);
             }
         });
     },
@@ -136,12 +134,13 @@ module.exports = {
         }
     },
 
-    createPriceEntry: function (price) {
+    createPriceEntry: function (price, changePercent) {
         return new Promise((resolve, reject) => {
             let id = generateID();
             let date = new Date();
-            let addPrice = `INSERT INTO price(priceID, pDate, value) values($1, $2, $3)`;
-            client.query(addPrice, [id, date.toString(), price], (err, result) => {
+            if (typeof price === "number" && typeof changePercent === "number");
+            let addPrice = `INSERT INTO price(priceID, pDate, value, changePercent) values($1, $2, $3, $4)`;
+            client.query(addPrice, [id, date.toString(), price, changePercent], (err, result) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -151,38 +150,7 @@ module.exports = {
         })
     },
 
-    getAPI: function(company) {
-        return new Promise(function(resolve, reject) {
-          request({
-            url: "https://api.iextrading.com/1.0/stock/" + company + "/chart/date/20181016?chartInterval=30",
-            //url: "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=" + company + "&interval=5min&apikey=E9WND7ACGHFTZ2TG",
-            method: 'GET'
-          },function(err, response, body) {
-            if (err) {
-              console.log("ERROR: " + err);
-            } else {
-              resolve(body);
-            }
-          });
-        })
-      },
-
-      getAPIList: function () {
-        return new Promise(function(resolve, reject) {
-            request({
-              url: "https://ws-api.iextrading.com/1.0/ref-data/symbols",
-              method: 'GET'
-            },function(err, response, body) {
-              if (err) {
-                console.log("ERROR: " + err);
-              } else {
-                resolve(body);
-              }
-            });
-          })
-      },
-
-      testAPI: function (url) {
+      getAPI: function (url) {
         return new Promise(function(resolve, reject) {
             request({
               url: url,
@@ -232,11 +200,24 @@ module.exports = {
         }
     },
 
-    test: function (symbol) {
-        return new Promise((res, rej) => {
-            helper.testAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/chart/date/20181016?chartInterval=30").then((data) => {
-                res(data);
-            });
-        })
+    addCompany: async function(symbol, json, industry) {
+        let name = json.companyName;
+        let price = json.latestPrice;
+        let volume = json.latestVolume;
+        let changePercent = json.changePercent;
+        let id = await this.createPriceEntry(price, changePercent);
+        let find = `SELECT * from company WHERE companyid = $1`;
+        let check = await client.query(find, [symbol]);
+        if (check.rows.length === 0) {
+            if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0 && typeof volume === "number") {
+                let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+                await client.query(addQuery, [symbol, volume, industry, name, id]);
+            }
+        } else {
+            if (typeof symbol === "string" && typeof volume === "number") {
+                let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
+                await client.query(updateCompany, [id, volume, symbol]);
+            }
+        }
     }
 }
