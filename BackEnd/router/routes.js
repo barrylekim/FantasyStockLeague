@@ -540,6 +540,28 @@ router.get("/getPrice", (req, res) => {
     });
 });
 
+router.get("/company/:id?", (req, res) => {
+    if (req.params.id === undefined) {
+        let select = `SELECT companyid, industry, numofshares, value, changePercent FROM company NATURAL JOIN price`;
+        client.query(select, (err, result) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.status(200).send(result.rows);
+            }
+        });
+    } else {
+        let select = `SELECT companyid, industry, numofshares, value, changePercent FROM company NATURAL JOIN price NATURAL JOIN contains NATURAL JOIN trader WHERE traderid = $1`;
+        client.query(select, [req.params.id], (err, result) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.status(200).send(result.rows);
+            }
+        });
+    }
+});
+
 router.get("/getCompany", (req, res) => {
     let select = `SELECT * FROM company`;
     client.query(select, (err, result) => {

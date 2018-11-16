@@ -12,65 +12,78 @@ getStock = function (symbol) {
     });
 }
 
-addAPICompanies = async function() {
-    let result = await helper.getAPI("https://ws-api.iextrading.com/1.0/ref-data/symbols");
-    let promises = [];
-    let json = JSON.parse(result);
-    for (var i = 0; i < json.length; i+=5) {
-        let symbol = json[i].symbol;
-        let promise = helper.getAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then(async (data) => {
-            try {
-                let industry = JSON.parse(data).industry;
-                return getStock(symbol).then(async (response) => {
+addAPICompanies = function() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let result = await helper.getAPI("https://ws-api.iextrading.com/1.0/ref-data/symbols");
+            let promises = [];
+            let json = JSON.parse(result);
+            for (var i = 0; i < json.length; i+=5) {
+                let symbol = json[i].symbol;
+                let promise = helper.getAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then(async (data) => {
                     try {
-                        let json = JSON.parse(response).quote;
-                        await helper.addCompany(symbol, json, industry);
+                        let industry = JSON.parse(data).industry;
+                        return getStock(symbol).then(async (response) => {
+                            try {
+                                let json = JSON.parse(response).quote;
+                                await helper.addCompany(symbol, json, industry);
+                            } catch (err) {
+                                //console.log(err);
+                                reject();
+                            }
+                        })
                     } catch (err) {
                         //console.log(err);
-                    }
-                })
-            } catch (err) {
-                //console.log(err);
-            } 
-        });
-        promises.push(promise); 
-    }
-    Promise.all(promises).then(() => {
-        console.log("project ready");
-        return;
-    }); 
+                        reject();
+                    } 
+                });
+                promises.push(promise); 
+            }
+            Promise.all(promises).then(() => {
+                console.log("project ready");
+                resolve();
+            }); 
+        } catch (err) {
+            reject();
+        }
+    });
 }
 
 addBigCompanies = function() {
-    let arr = ["GOOG", "AAPL", "NFLX", "SPOT", "AMD", "MSFT", "GS", "ADBE", "SNE", "AMZN"];
-    let promises = [];
-    for (var i = 0; i < arr.length; i++) {
-        let symbol = arr[i];
-        try {
-            let promise = helper.getAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then(async (data) => {
-                try {
-                    let industry = JSON.parse(data).industry;
-                    return getStock(symbol).then(async (response) => {
-                        try {
-                            let json = JSON.parse(response).quote;
-                            await helper.addCompany(symbol, json, industry);
-                        } catch (err) {
-                            console.log(err);
-                        }
-                    })
-                } catch (err) {
-                    console.log(err);
-                } 
-            });
-            promises.push(promise);  
-        } catch (err) {
-            console.log(err);
+    return new Promise(async (resolve, reject) => {
+        let arr = ["GOOG", "AAPL", "NFLX", "SPOT", "AMD", "MSFT", "GS", "ADBE", "SNE", "AMZN"];
+        let promises = [];
+        for (var i = 0; i < arr.length; i++) {
+            let symbol = arr[i];
+            try {
+                let promise = helper.getAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then(async (data) => {
+                    try {
+                        let industry = JSON.parse(data).industry;
+                        return getStock(symbol).then(async (response) => {
+                            try {
+                                let json = JSON.parse(response).quote;
+                                await helper.addCompany(symbol, json, industry);
+                            } catch (err) {
+                                console.log(err);
+                                reject();
+                            }
+                        })
+                    } catch (err) {
+                        console.log(err);
+                        reject();
+                    } 
+                });
+                promises.push(promise);  
+            } catch (err) {
+                console.log(err);
+                reject();
+            }
         }
-    }
-    Promise.all(promises).then(() => {
-        console.log("big name companies added");
-        return;
-    });
+        Promise.all(promises).then(() => {
+            console.log("big name companies added");
+            resolve();
+        });
+    })
 }
 
 module.exports = {
