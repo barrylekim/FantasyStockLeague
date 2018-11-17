@@ -41,19 +41,19 @@ router.get("/news/:traderid", async (req, res) => {
 });
 
 // get tradernames of all the traders who have purchased all the companys in the database
-router.get("/traderAll", (req, res) => {
-    let all = `SELECT t.tradername FROM trader AS t WHERE companyid NOT IN ((SELECT c.companyID FROM company AS c) EXCEPT (SELECT companyID FROM contains))`;
-    let tryAgain = `SELECT t.tradername FROM trader AS t WHERE NOT EXISTS ((SELECT c.companyID from company AS c) EXCEPT (SELECT companyID FROM contains))`;
+// router.get("/traderAll", (req, res) => {
+//     let all = `SELECT t.tradername FROM trader AS t WHERE companyid NOT IN ((SELECT c.companyID FROM company AS c) EXCEPT (SELECT companyID FROM contains))`;
+//     let tryAgain = `SELECT t.tradername FROM trader AS t WHERE NOT EXISTS ((SELECT c.companyID from company AS c) EXCEPT (SELECT companyID FROM contains))`;
 
-    client.query(all, (err, response) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(response.rows);
-            res.send(response.rows);
-        }
-    })
-});
+//     client.query(all, (err, response) => {
+//         if (err) {
+//             console.log(err);
+//         } else {
+//             console.log(response.rows);
+//             res.send(response.rows);
+//         }
+//     })
+// });
 
 router.get("/companyHighest", (req, res) => {
     let select = `SELECT companyid, numofshares, industry, companyname, pdate, value, changepercent FROM company NATURAL JOIN price ORDER BY value DESC`;
@@ -68,13 +68,13 @@ router.get("/companyHighest", (req, res) => {
 
 // return traderID and companyID of the trader with the largest shares the given company
 router.get("/largestShare", (req, res) => {
-    let select = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction GROUP BY companyID, traderID ORDER BY total DESC`;
-    client.query(select, (err, result) => {
+    let company = req.body.companyid;
+    let select = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction WHERE comapnyid = $1 GROUP BY companyID, traderID ORDER BY total DESC`;
+    client.query(select, [company],(err, result) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
-            let maxTrader = result.rows[0].traderid;
-            res.status(200).json({ traderID: maxTrader });
+            res.status(200).send(result.rows[0]);
         }
     });
 });
@@ -303,25 +303,25 @@ router.get("/getMostTransactionPlayer", (req, res) => {
 });
 
 //returns top 5 players on the leaderboard, does not work because it looks at funds
-router.get("/getTopPlayers", (req, res) => {
-    let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername, funds FROM trader ORDER BY funds DESC`;
-    client.query(getALLTradersSortedTopDownSQL, (err, result) => {
-        if (err) {
-            console.log(getALLTradersSortedTopDownSQL + err);
-        } else {
-            // console.log(result);
-            let arr = [];
-            var index = 0;
-            var length = result.rows.length;
-            while (index < 10 && length > 0) {
-                arr.push(result.rows[index]);
-                index++;
-                length--;
-            }
-            res.send(arr);
-        }
-    });
-});
+// router.get("/getTopPlayers", (req, res) => {
+//     let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername, funds FROM trader ORDER BY funds DESC`;
+//     client.query(getALLTradersSortedTopDownSQL, (err, result) => {
+//         if (err) {
+//             console.log(getALLTradersSortedTopDownSQL + err);
+//         } else {
+//             // console.log(result);
+//             let arr = [];
+//             var index = 0;
+//             var length = result.rows.length;
+//             while (index < 10 && length > 0) {
+//                 arr.push(result.rows[index]);
+//                 index++;
+//                 length--;
+//             }
+//             res.send(arr);
+//         }
+//     });
+// });
 
 // Returns an array of all player names, you can maybe call this one and pass it to netbuy and netsell to get the top 5 players
 router.get("/getAllPlayers", (req, res) => {
