@@ -54,7 +54,7 @@ router.get("/companyHighest", (req, res) => {
 // return traderID and companyID of the trader with the largest shares the given company
 router.get("/largestShare/:id", (req, res) => {
     let company = req.params.id;
-    let select = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction WHERE comapnyid = $1 GROUP BY companyID, traderID ORDER BY total DESC`;
+    let select = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction WHERE companyid = $1 GROUP BY companyID, traderID ORDER BY total DESC`;
     client.query(select, [company],(err, result) => {
         if (err) {
             res.status(500).json({ error: err });
