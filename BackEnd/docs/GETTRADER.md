@@ -4,7 +4,7 @@ Return trader info, including their portfolio and watchlist given the name of a 
 
 **URL** : `http://localhost:3005/getTrader/:name`
 
-**Method** : `POST`
+**Method** : `GET`
 
 **Data constraints**
 
