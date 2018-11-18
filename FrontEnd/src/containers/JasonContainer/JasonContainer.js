@@ -44,7 +44,10 @@ class JasonContainer extends Component {
             break;
             case("s"):
             return <Stocklist id={this.state.user} portfolio={this.state.Portfolio}/>
-            break; 
+            break;
+            case("d"):
+                return <WatchList name= {this.state.name}/>
+                break;
             default: 
             return <Portfolio name={this.state.name} stocks = {this.state.Portfolio}/>
         }
@@ -127,13 +130,40 @@ class JasonContainer extends Component {
         })
 
     }
+    submitDeleteUser(event){
+        event.preventDefault();
+        let st = this.state;
+        let data = {
+            name: st.name,
+        }
+        fetch('http://localhost:3005/deleteTrader',{
+            method: 'POST',
+            mode: 'cors',
+            credentials: 'same-origin',
+            headers:{
+                "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify(data),
+        }).then(res =>{
+            console.log(res);
+            return res.json();
+        }).then(myJ=>{
+            console.log(myJ);
+        })
+
+    }
     handleChangeWatchList(event){
         let curr = this.state
-        curr.query = event.target.value; 
-        this.setState(curr); 
+        curr.query = event.target.value;
+        this.setState(curr);
+    }
+    handleChangeUser(event){
+        let curr = this.state
+        curr.query = event.target.value;
+        this.setState(curr);
     }
 handleForm(){
-  if(this.state.currentView=="p"){
+  if(this.state.currentView==="p"){
     return (<form onSubmit={this.submitDataBuy.bind(this)}> 
     <label>
       Buy: 
@@ -143,14 +173,23 @@ handleForm(){
    <input type="submit" value="Submit"/>
    </label>            
    </form>);
-  }else{
+  }else if (this.state.currentView==="w"){
     return (<form onSubmit={this.submitDataWatchList.bind(this)}>
     <label>
         Add To Watchlist:
-        <input onChange={this.handleChangeWatchList.bind(this)} value = {this.state.query}/>
+        <input maxlength="0" size="4" onChange={this.handleChangeWatchList.bind(this)} value = {this.state.query}/>
         <input type="submit" value="Submit"/>
     </label>
     </form>   );
+
+  }
+  else if (this.state.currentView==="d"){
+      return (<form onSubmit={this.submitDeleteUser.bind(this)}>
+          <label>
+              Delete User:
+              <button type="submit" value="Submit" text="submit" onClick={this.handleChangeUser.bind(this)}>Submit</button>
+          </label>
+      </form>   );
 
   }
 }
@@ -159,9 +198,10 @@ handleForm(){
         return(
             <div className="Jason">
             <div class="btn-group" >
-  <button onClick={(e)=>this.handlechange("p",e)}>Holdings</button>
-  <button onClick={(e)=>this.handlechange("w",e)} >Watchlist</button>
-  <button onClick={(e)=>this.handlechange("s",e)}>Stocklist</button>
+                <button onClick={(e)=>this.handlechange("p",e)}>Holdings</button>
+                <button onClick={(e)=>this.handlechange("w",e)} >Watchlist</button>
+                <button onClick={(e)=>this.handlechange("s",e)}>Stocklist</button>
+                <button onClick={(e)=>this.handlechange("d",e)}>Delete Account</button>
 </div>
      <User name={this.state.name}worth={this.state.worth} cash= {this.state.funds}/>
 {this.renderSwitch(currS.currentView)}

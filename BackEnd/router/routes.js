@@ -390,23 +390,31 @@ router.get("/getAllPlayers", (req, res) => {
 });
 
 
-router.post("/deleteTrader/:id", (req, res) => {
-    let find = `SELECT * FROM trader WHERE traderid = $1`;
-    client.query(find, [req.params.id], (err, result) => {
-        if (err) {
-            console.log(err);
-        }
-        if (result.rows.length === 0) {
-            res.status(400).json({ error: "id does not exist" });
+router.post("/deleteTrader", (req, res) => {
+    let playerName = req.body.name;
+    let findWatchID = `SELECT traderID FROM trader WHERE tradername = $1`;
+    client.query(findWatchID, [playerName], (err1, result1) => {
+        if (err1) {
+            res.status(500).json({error: err1});
         } else {
-            let deleteRow = `DELETE FROM trader WHERE traderID = $1`;
-            client.query(deleteRow, [req.params.id], (err, response) => {
+            let find = `SELECT * FROM trader WHERE traderid = $1`;
+            client.query(find, [result1.rows[0].traderid], (err, result) => {
                 if (err) {
                     console.log(err);
-                } else {
-                    res.status(200).json({ message: "trader deleted" });
                 }
-            })
+                if (result.rows.length === 0) {
+                    res.status(400).json({error: "id does not exist"});
+                } else {
+                    let deleteRow = `DELETE FROM trader WHERE traderID = $1`;
+                    client.query(deleteRow, [result1.rows[0].traderid], (err, response) => {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            res.status(200).json({message: "trader deleted"});
+                        }
+                    })
+                }
+            });
         }
     });
 });
