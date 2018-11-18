@@ -12,7 +12,7 @@ Call the iExTrading API to update to price of all stocks in the database
 
 ## Success Response
 
-**Condition** : If everything is OK and trader with name was found.
+**Condition** : If everything is OK and price were updated.
 
 **Code** : `200 OK`
 
