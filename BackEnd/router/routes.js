@@ -40,21 +40,6 @@ router.get("/news/:traderid", async (req, res) => {
     }
 });
 
-// get tradernames of all the traders who have purchased all the companys in the database
-// router.get("/traderAll", (req, res) => {
-//     let all = `SELECT t.tradername FROM trader AS t WHERE companyid NOT IN ((SELECT c.companyID FROM company AS c) EXCEPT (SELECT companyID FROM contains))`;
-//     let tryAgain = `SELECT t.tradername FROM trader AS t WHERE NOT EXISTS ((SELECT c.companyID from company AS c) EXCEPT (SELECT companyID FROM contains))`;
-
-//     client.query(all, (err, response) => {
-//         if (err) {
-//             console.log(err);
-//         } else {
-//             console.log(response.rows);
-//             res.send(response.rows);
-//         }
-//     })
-// });
-
 router.get("/companyHighest", (req, res) => {
     let select = `SELECT companyid, numofshares, industry, companyname, pdate, value, changepercent FROM company NATURAL JOIN price ORDER BY value DESC`;
     client.query(select, (err, response) => {
@@ -67,8 +52,8 @@ router.get("/companyHighest", (req, res) => {
 });
 
 // return traderID and companyID of the trader with the largest shares the given company
-router.get("/largestShare", (req, res) => {
-    let company = req.body.companyid;
+router.get("/largestShare/:id", (req, res) => {
+    let company = req.params.id;
     let select = `SELECT traderID, companyID, SUM(sharesPurchased) AS total FROM transaction WHERE comapnyid = $1 GROUP BY companyID, traderID ORDER BY total DESC`;
     client.query(select, [company],(err, result) => {
         if (err) {
@@ -225,18 +210,6 @@ router.post('/addToWatchList', (req, res) => {
     });
 
 });
-// findTrader pass the name and you will get the id
-router.get("/findTrader", (req, res) => {
-    let name = req.body.name;
-    let findname = `SELECT traderID FROM trader WHERE tradername = $1`
-    client.query(findname, [name], (err1, result1) => {
-        if (err1) {
-            res.status(500).json({ error: err1 });
-        } else {
-            res.send(result1.rows[0].traderid);
-        }
-    });
-});
 
 // add trader to leaderboard
 // update numofplayers on leaderboard table
@@ -303,25 +276,25 @@ router.get("/getMostTransactionPlayer", (req, res) => {
 });
 
 //returns top 5 players on the leaderboard, does not work because it looks at funds
-// router.get("/getTopPlayers", (req, res) => {
-//     let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername, funds FROM trader ORDER BY funds DESC`;
-//     client.query(getALLTradersSortedTopDownSQL, (err, result) => {
-//         if (err) {
-//             console.log(getALLTradersSortedTopDownSQL + err);
-//         } else {
-//             // console.log(result);
-//             let arr = [];
-//             var index = 0;
-//             var length = result.rows.length;
-//             while (index < 10 && length > 0) {
-//                 arr.push(result.rows[index]);
-//                 index++;
-//                 length--;
-//             }
-//             res.send(arr);
-//         }
-//     });
-// });
+router.get("/getTopPlayers", (req, res) => {
+    let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername, funds FROM trader ORDER BY funds DESC`;
+    client.query(getALLTradersSortedTopDownSQL, (err, result) => {
+        if (err) {
+            console.log(getALLTradersSortedTopDownSQL + err);
+        } else {
+            // console.log(result);
+            let arr = [];
+            var index = 0;
+            var length = result.rows.length;
+            while (index < 10 && length > 0) {
+                arr.push(result.rows[index]);
+                index++;
+                length--;
+            }
+            res.send(arr);
+        }
+    });
+});
 
 // returns top 10 players by value
 router.get("/getTopPlayersByValue", (req, res) => {
