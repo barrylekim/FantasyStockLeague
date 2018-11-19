@@ -35,7 +35,9 @@ class GameInsights extends Component {
     transB(){
         let st = this.state;
         if(st.showTransactions){
-            st.showTransactions= false; 
+            st.showTransactions= false;
+            st.transactions = [];
+            this.setState(st); 
         }else{
             st.showTransactions=true; 
             fetch('http://localhost:3005/transaction').then(res =>{
@@ -84,7 +86,7 @@ class GameInsights extends Component {
         )
         console.log(val); 
         return val; }else{
-            return; 
+            return (null); 
         }
 
     }
