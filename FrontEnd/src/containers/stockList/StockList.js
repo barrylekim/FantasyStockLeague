@@ -10,8 +10,11 @@ class StockList extends Component {
       amount:"",
       stocks:[],
       id: props.id,
-      userstocks:props.stocks
+      userstocks:props.stocks,
+      handler: props.handler
     } 
+    this.handleInput = this.handleInput.bind(this);
+    this.handleBuy = this.handleBuy.bind(this);
     this.handleChange = this.handleChange.bind(this);
   }
   
@@ -35,20 +38,38 @@ class StockList extends Component {
   }
 
   handleBuy(companyid) {
-    fetch("http://localhost:3005/buy",
-    {
-      method: 'POST',
-      mode: 'cors',
-      credentials: 'same-origin',
-      headers:{
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: JSON.stringify({traderID: this.state.id, companyID: companyid, numOfShares: this.state.amount}),
-    }).then((result) => {
-      return result.json();
-    }).then((json) => {
-      alert(json.message);
-    })
+    if (this.state.amount !== undefined) {
+      var self = this;
+      let global;
+      fetch("http://localhost:3005/buy",
+        {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'same-origin',
+          headers: {
+            "Content-Type": "application/json; charset=utf-8"
+          },
+          body: JSON.stringify({ traderID: this.state.id, companyID: companyid, numOfShares: this.state.amount }),
+        }).then((result) => {
+          global = result.status;
+          return result.json();
+        }).then((json) => {
+          if (global === 200) {
+            let msg = {
+              companyid: companyid,
+              shares: self.state.amount,
+              value: json.price
+            }
+            self.state.handler(msg);
+          } else {
+            if (global === 400) {
+              alert("Not enough funds");
+            } else {
+              alert("Please enter amount");
+            }
+          }
+        });
+    }
   }
 
   handleInput(event) {
@@ -82,9 +103,9 @@ class StockList extends Component {
                   let change = value.changepercent;
                   if (value.changepercent >= 0) {
                     change = "+" + value.changepercent;
-                    return ( <Stock onType={(e) => this.handleInput(e)} onClick={(e)=> this.handleBuy(value.companyid)} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares}/>)
+                    return ( <Stock onChange={this.handleInput} onClick={(e)=> this.handleBuy(value.companyid)} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares}/>)
                   } else {
-                    return ( <Stock onClick={this.handleAdd} key={index} cond={"red"} name={value.companyid} price={value.value} changePercent={value.changepercent} shares={value.numofshares}/>)
+                    return ( <Stock onChange={this.handleInput} onClick={(e)=> this.handleBuy(value.companyid)} key={index} cond={"red"} name={value.companyid} price={value.value} changePercent={value.changepercent} shares={value.numofshares}/>)
                   }
                 }
               })
