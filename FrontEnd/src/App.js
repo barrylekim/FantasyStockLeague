@@ -160,7 +160,7 @@ class App extends Component {
           StockWatch
       </header>
         {!this.state.id ? 
-        <form>
+        [<form>
           <div class="box">
             <label className="lab">Login ID:</label>
             <input class='email'type="name" value={this.state.value} onChange={this.handleChange.bind(this)} />
@@ -171,7 +171,7 @@ class App extends Component {
             <div onClick={this.signupData} id="btn2">Sign Up</div>
             </a>
           </div>
-        </form>:
+        </form>,<img src="https://ak1.picdn.net/shutterstock/videos/4548131/thumb/1.jpg" alt="asdf"/>]:
     [<Leaderboard className="LeaderBoard"/>,
     <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} watchlist={this.state.watchlist}/>,
    <GameInsight/>,<button class="btn3" onClick={this.DeleteAccount}>Delete Account</button>]}

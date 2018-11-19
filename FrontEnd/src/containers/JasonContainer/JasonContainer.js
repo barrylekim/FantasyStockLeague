@@ -11,7 +11,7 @@ class JasonContainer extends Component {
             currentView:"p",
             Portfolio:props.Portfolio,
             user:props.id,
-            Watchlist: props.watchList,
+            Watchlist: props.watchlist,
             name: props.name,
             worth:props.worth,
             funds:props.funds,
