@@ -153,16 +153,11 @@ class JasonContainer extends Component {
         })
 
     }
-<<<<<<< HEAD
-    handleChangeWatchList(event){
-       
-=======
     handleChangeWatchList(par){
        let jasonWorksAtGoogle = this.state;
        console.log(par);
        jasonWorksAtGoogle.Watchlist.push(par);
        this.setState(jasonWorksAtGoogle);
->>>>>>> 32c952c1689c08101c76b0fb29e6136589b90de5
     }
 
     render(){

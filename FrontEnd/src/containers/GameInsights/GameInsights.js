@@ -28,10 +28,10 @@ class GameInsights extends Component {
         }).then(myj=>{
             st.mostTrans = myj.message; 
         }).then(() => {
-            fetch('http://localhost:3005/largestPriceTx').then(res2 =>{
-                return res2.json();
-            })
-        }).then(myj2=>{
+        //     fetch('http://localhost:3005/largestPriceTx').then(res2 =>{
+        //         return res2.json();
+        //     })
+        // }).then(myj2=>{
 
 
         })
@@ -107,8 +107,26 @@ class GameInsights extends Component {
         }
 
     }
+    renderView(param){
+        switch(param){
+            case "v":
+            return(
+                [<form onSubmit={this.submitData}>
+        <input onChange={this.handleChange} value={this.state.queryShare}></input>
+        <input type="submit" value="Submit"></input></form>,
+        this.state.result]
+        
+            )
+        }
+    }
     render(){
         return (<div>
+            <select>
+  <option value="volvo">SHOW ME COMPANIES IN ORDER OF STOCK VALUE</option>
+  <option value="saab">SHOW ME THE PERSON WHIGH THE MOST SHARES OF COMPANY X</option>
+  <option value="mercedes">SHOW ME ALL TRANSACTIONS</option>
+  <option value="audi">Audi</option>
+</select>
             <form onSubmit={this.submitData}>
         <input onChange={this.handleChange} value={this.state.queryShare}></input>
         <input type="submit" value="Submit"></input></form>
