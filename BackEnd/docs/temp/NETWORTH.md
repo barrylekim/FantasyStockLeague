@@ -1,14 +1,28 @@
-# Get the company with largest price transaction
+# Net worth
 
-Go through all the transactions and find the company with that has the most expensive price per share for the transaction
+Given a trader name, get the net worth of that player based on his investments and the current value
 
-**URL** : `http://localhost:3005/largestPriceTx`
+**URL** : `http://localhost:3005/netWorth`
 
 **Method** : `GET`
 
 **Data constraints**
 
-None.
+Provide the name of a trader.
+
+```json
+{
+    "name": "name of a trader"
+}
+```
+
+**Data example** All fields must be sent.
+
+```json
+{
+    "name": "Barry"
+}
+```
 
 ## Success Response
 
@@ -18,11 +32,7 @@ None.
 
 **Content example**
 
-```json
-{
-    "companyid": "AAPL"
-}
-```
+30000
 
 ## Error Response
 

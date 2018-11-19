@@ -40,13 +40,14 @@ router.get("/news/:traderid", async (req, res) => {
     }
 });
 
+// Return the company that has the highest price per share
 router.get("/companyHighest", (req, res) => {
-    let select = `SELECT companyid, numofshares, industry, companyname, pdate, value, changepercent FROM company NATURAL JOIN price ORDER BY value DESC`;
+    let select = `SELECT companyid, numofshares, industry, companyname, pdate, value, changepercent FROM company NATURAL JOIN price WHERE value = (SELECT MAX(value) FROM price)`;
     client.query(select, (err, response) => {
         if (err) {
             console.log(err);
         } else {
-             res.send(response.rows);
+             res.send(response.rows[0]);
         }
     });
 });
@@ -59,7 +60,15 @@ router.get("/largestShare/:id", (req, res) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
-            res.status(200).send(result.rows[0]);
+            let getTraderName = `SELECT traderID, tradername FROM trader WHERE traderid = $1`
+            client.query(getTraderName, [result.rows[0].traderid], (err2, result2) => {
+                if (err2) {
+                    res.status(500).json({error: err2});
+                } else {
+                    result.rows[0]["tradername"] = result2.rows[0].tradername;
+                    res.status(200).send(result.rows[0]);
+                }
+            });
         }
     });
 });
@@ -83,7 +92,7 @@ router.get("/largestPriceTx", (req, res) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
-            res.status(200).json({ "companyid": response.rows[0] });
+            res.status(200).json(response.rows[0]);
         }
     });
 });
@@ -106,6 +115,7 @@ router.get("/invested/:companyid", (req, res) => {
     let select = `SELECT tradername FROM trader NATURAL JOIN contains WHERE companyID = $1`;
     client.query(select, [CID], (err, response) => {
         if (err) {
+            console.log(err);
             res.status(500).json({ error: err });
         } else {
             res.status(200).send(response.rows);
@@ -161,6 +171,7 @@ generateID = function () {
     return id;
 }
 
+// Adds stock to a trader's watchlist given the player name and the companyID
 router.post('/addToWatchList', (req, res) => {
     let playerName = req.body.name;
     let companyCode = req.body.CID;
@@ -179,7 +190,7 @@ router.post('/addToWatchList', (req, res) => {
                         if (err1) {
                             res.status(500).json({ error: err1 });
                         } else {
-                            res.status(200).json({ message: "done" });
+                            res.status(200).json({ message: "Company added to watchlist" });
                         }
                     });
                 }
@@ -248,7 +259,14 @@ router.get("/getMostTransactionPlayer", (req, res) => {
             res.status(500).json({ error: err });
         } else {
             let highestTransTraderID = result.rows[0].traderid;
-            res.status(200).json({ message: "TraderID of player with most transactions:" + highestTransTraderID })
+            let getName = `SELECT traderID, tradername FROM trader WHERE traderID = $1`;
+            client.query(getName, [highestTransTraderID], (err2, result)=> {
+                if (err2) {
+                    res.status(500).json({ error: err }); 
+                } else {
+                    res.status(200).json(result.rows[0]);
+                }
+            })
         }
     })
 });
@@ -302,12 +320,14 @@ router.get("/netWorth", async (req, res) => {
             client.query(companyAndPriceView, (err2, result2) => {
                 if (err2) {
                     console.log("err2 " + err2);
+                    res.status(500).json({ message: err2});
                 } else {
                     // Gives us companyID, the number of shares this person owns and the price of each share
                     let newViewFromView = `SELECT t.companyID, c.shares, t.value FROM temp t, contains c WHERE t.companyID = c.companyID AND portfolioID = $1`;
                     client.query(newViewFromView, [portfolioID], (err3, result3) => {
                         if (err3) {
                             console.log("err3 " + err3);
+                            res.status(500).json({ message: err3 });
                         } else {
                             // Loop through each row to calculate the total value of each company and add it together for that person
                             let arrayOfValues = [];
@@ -319,7 +339,7 @@ router.get("/netWorth", async (req, res) => {
                                 companiesWorth = companiesWorth + i;
                             }
                             let totalWorth = companiesWorth + funds;
-                            res.send(totalWorth.toString());
+                            res.status(200).send(totalWorth.toString());
                         }
                     });
                 }
@@ -402,16 +422,6 @@ router.get("/getTrader/:name", async (req, res) => {
 
 //Below are for testing
 
-router.get("/getTraders", (req, res) => {
-    let select = `SELECT * FROM trader`;
-    client.query(select, (err, result) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send(result.rows);
-        }
-    });
-});
 
 router.get("/company/:id?", (req, res) => {
     if (req.params.id === undefined) {
@@ -435,4 +445,51 @@ router.get("/company/:id?", (req, res) => {
     }
 });
 
+
+// Get an array of CompanyIDs that all players bought stocks from
+router.get("/getCompanyAllTradersBought", (req, res) => {
+    let step1 = `CREATE OR REPLACE VIEW step1 AS SELECT DISTINCT companyID FROM transaction`;
+    client.query(step1, (err1, result1) => {
+        if (err1) {
+            console.log("err1: " + err1);
+            res.status(500).json({error: err1});
+        } else {
+            let step2 = `CREATE OR REPLACE VIEW step2 AS SELECT DISTINCT step1.companyID, trader.traderID FROM step1, trader`;
+            client.query(step2, (err2, result2) => {
+                if (err2) {
+                    console.log("err2: " + err2);
+                    res.status(500).json({error: err2});
+                } else {
+                    let step3 = `CREATE OR REPLACE VIEW step3 AS SELECT companyID, traderID FROM step2 EXCEPT (SELECT companyID, traderID FROM transaction)`;
+                    client.query(step3, (err3, result3) => {
+                        if (err3) {
+                            console.log("err3: " + err3);
+                            res.status(500).json({error: err3});
+                        } else {
+                            // res.send(result3.rows);
+                            let step4 = `CREATE OR REPLACE VIEW step4 as SELECT companyID FROM step3 `;
+                            client.query(step4, (err4, result4) => {
+                                if (err4) {
+                                    console.log("err4: " + err4);
+                                    res.status(500).json({error: err4});
+                                } else {
+                                    let step5 = `SELECT * FROM step1 WHERE NOT EXISTS (SELECT * FROM step4 WHERE step4.companyID = step1.companyID)`;
+                                    client.query(step5, (err5, result5) => {
+                                        if (err5) {
+                                            console.log("err5: " + err5);
+                                            res.status(500).json({error: err5});
+                                        } else {
+                                            res.status(200).send(result5.rows);
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+            });
+        }
+    });
+        
+});
 module.exports = router;

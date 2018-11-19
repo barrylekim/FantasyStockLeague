@@ -1,14 +1,15 @@
-# Get the company with largest price transaction
+# Update Price
 
-Go through all the transactions and find the company with that has the most expensive price per share for the transaction
+Update the share price of every company, creates a new entry in the price table with a new price ID and updates the priceID of every company.
 
-**URL** : `http://localhost:3005/largestPriceTx`
+**URL** : `http://localhost:3005/updatePrice`
 
 **Method** : `GET`
 
 **Data constraints**
 
 None.
+
 
 ## Success Response
 
@@ -20,7 +21,7 @@ None.
 
 ```json
 {
-    "companyid": "AAPL"
+    "message": "Company prices updated"
 }
 ```
 

@@ -18,3 +18,8 @@ li{
     font-size: 10px;
     color: red;
 }
+
+.textBox {
+    width: 25px;
+    height: 15px;
+}

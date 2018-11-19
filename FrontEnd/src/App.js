@@ -107,7 +107,9 @@ class App extends Component {
             st.worth = sum; 
       this.setState(st);
             console.log('acceptedID');
-        }) 
+        }).catch((e) => {
+          alert("Wrong ID, please enter a valid ID");
+        });
     }
     signupData(event){
       event.preventDefault()

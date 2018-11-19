@@ -12,6 +12,7 @@ th {
     padding: 10px;
     background-color: #4CAF50;
     color: white;
+    font-size: 15px;
 }
 
 thead, tbody { 

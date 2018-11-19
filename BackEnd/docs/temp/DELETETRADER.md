@@ -1,14 +1,28 @@
-# Get the company with largest price transaction
+# Delete a trader
 
-Go through all the transactions and find the company with that has the most expensive price per share for the transaction
+Delete the trader with the given name.
 
-**URL** : `http://localhost:3005/largestPriceTx`
+**URL** : `http://localhost:3005/deleteTrader`
 
-**Method** : `GET`
+**Method** : `POST`
 
 **Data constraints**
 
-None.
+Provide the name of a trader.
+
+```json
+{
+    "name": "name of a trader"
+}
+```
+
+**Data example** All fields must be sent.
+
+```json
+{
+    "name": "Barry"
+}
+```
 
 ## Success Response
 
@@ -18,11 +32,7 @@ None.
 
 **Content example**
 
-```json
-{
-    "companyid": "AAPL"
-}
-```
+{message: "trader deleted"}
 
 ## Error Response
 
