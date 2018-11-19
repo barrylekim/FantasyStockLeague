@@ -12,7 +12,7 @@ class LeaderBoard extends Component{
         let self = this; 
         let curSt = self.state;
     let peoplez = []; 
-    fetch("http://localhost:3005/getTopPlayers").then(res2=>{
+    fetch("http://localhost:3005/getTopPlayersByValue").then(res2=>{
       return res2.json();
     }).then(myJson2 =>{
       myJson2.forEach((element,index) => {
