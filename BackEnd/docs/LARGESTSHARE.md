@@ -20,9 +20,10 @@ Get the player witht he largest share in a given company.
 
 ```json
 {
-    "traderid": "453619",
-    "companyid": "AAPL",
-    "total": "643"
+    "traderid": "335016",
+    "companyid": "UN",
+    "total": "100",
+    "tradername": "Barry"
 }
 ```
 

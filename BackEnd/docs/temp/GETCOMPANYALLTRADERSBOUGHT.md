@@ -1,8 +1,8 @@
-# Get the company with largest price transaction
+# Get An Array Of Companies
 
-Go through all the transactions and find the company with that has the most expensive price per share for the transaction
+Get companies that all traders bought stocks from.
 
-**URL** : `http://localhost:3005/largestPriceTx`
+**URL** : `http://localhost:3005/getCompaniesAllTradersBought`
 
 **Method** : `GET`
 
@@ -18,11 +18,11 @@ None.
 
 **Content example**
 
-```json
-{
-    "companyid": "AAPL"
-}
-```
+[
+    {
+        "companyid": "NFLX"
+    }
+]
 
 ## Error Response
 

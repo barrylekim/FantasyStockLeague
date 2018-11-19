@@ -12,7 +12,7 @@ Provide name of the trader in the url.
 
 **Data example** All fields must be sent.
 
-**URL** : `http://localhost:3005/getTrader/:Barry`
+**URL** : `http://localhost:3005/getTrader/Barry`
 
 ## Success Response
 

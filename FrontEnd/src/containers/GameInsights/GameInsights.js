@@ -7,7 +7,9 @@ class GameInsights extends Component {
             queryFound: false,
             result: null,
             showTransactions: false,
-            transactions:[]
+            transactions:[],
+            mostTrans: "",
+            highestTrans: ""
         }
         this.handleChange = this.handleChange.bind(this); 
         this.submitData = this.submitData.bind(this); 
@@ -18,6 +20,21 @@ class GameInsights extends Component {
         let st = this.state; 
         st.queryShare = event.target.value; 
         this.setState(st); 
+    }
+    componentDidMount(){
+        let st = this.state; 
+        fetch('http://localhost:3005/getMostTransactionPlayer').then(res=>{
+            return res.json()
+        }).then(myj=>{
+            st.mostTrans = myj.message; 
+        }).then(() => {
+            fetch('http://localhost:3005/largestPriceTx').then(res2 =>{
+                return res2.json();
+            })
+        }).then(myj2=>{
+
+
+        })
     }
     submitData(event){
         event.preventDefault()
@@ -98,6 +115,7 @@ class GameInsights extends Component {
         {this.state.queryFound ? this.state.result : <div>TypeheretoFindThePerson with the higest shraes of company X </div>}
         <button onClick = {this.transB}>Click Here to See All Transactions</button>
         {this.handleTransactions(this.state.showTransactions)}
+        <div>{this.state.mostTrans}</div>
         </div>)
     }
 }

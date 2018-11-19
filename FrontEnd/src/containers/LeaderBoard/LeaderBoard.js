@@ -18,8 +18,9 @@ class LeaderBoard extends Component{
       myJson2.forEach((element,index) => {
         let person={}; 
         person.name = element.tradername;
-        person.funds = element.networth;
-        person.returns = element.networth - 30000;
+        person.funds = element.networth.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        person.returns2 = element.networth - 3000000;
+          person.returns = person.returns2.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
         peoplez.push(person);  
       });
       curSt.people = peoplez;

@@ -1,8 +1,8 @@
-# Get the company with largest price transaction
+# Get all players
 
-Go through all the transactions and find the company with that has the most expensive price per share for the transaction
+Get all players in the game.
 
-**URL** : `http://localhost:3005/largestPriceTx`
+**URL** : `http://localhost:3005/getAllPlayers`
 
 **Method** : `GET`
 
@@ -18,11 +18,12 @@ None.
 
 **Content example**
 
-```json
-{
-    "companyid": "AAPL"
-}
-```
+[
+    "Barry",
+    "Rohan",
+    "Jason",
+    "Diego"
+]
 
 ## Error Response
 
