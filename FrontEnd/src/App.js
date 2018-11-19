@@ -152,9 +152,9 @@ class App extends Component {
             </a> 
             <a href="#">
             <div onClick={this.signupData} id="btn2">Sign Up</div>
-            </a> 
+            </a>
           </div>
-        </form>: 
+        </form>:
     [<Leaderboard className="LeaderBoard"/>,
     <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} />,
    <GameInsight/>,<button onClick={this.DeleteAccount}>Delete Account</button>]}
