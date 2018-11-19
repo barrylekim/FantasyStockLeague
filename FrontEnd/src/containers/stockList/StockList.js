@@ -87,31 +87,31 @@ class StockList extends Component {
       let stockr = this.state.stocks;
       return (
         <div className="tableDiv">
-        <table>
-          <thead>
-          <tr>
-            <th>CompanyID</th>
-            <th>Price</th>
-            <th>Shares</th>
-            <input onChange={this.handleChange}></input>
-          </tr>
-          </thead>
-          <tbody>
-          {
-              stockr.map((value,index) => {
-                if (value.companyid.includes(this.state.query.toUpperCase())) {
-                  let change = value.changepercent;
-                  if (value.changepercent >= 0) {
-                    change = "+" + value.changepercent;
-                    return ( <Stock onChange={this.handleInput} onClick={(e)=> this.handleBuy(value.companyid)} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares}/>)
-                  } else {
-                    return ( <Stock onChange={this.handleInput} onClick={(e)=> this.handleBuy(value.companyid)} key={index} cond={"red"} name={value.companyid} price={value.value} changePercent={value.changepercent} shares={value.numofshares}/>)
+          <table>
+            <thead>
+              <tr>
+                <th>CompanyID</th>
+                <th>Price</th>
+                <th>Shares</th>
+                <input onChange={this.handleChange}></input>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                stockr.map((value, index) => {
+                  if (value.companyid.includes(this.state.query.toUpperCase())) {
+                    let change = value.changepercent;
+                    if (value.changepercent >= 0) {
+                      change = "+" + value.changepercent;
+                      return (<Stock onChange={this.handleInput} onClick={(e) => this.handleBuy(value.companyid)} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares} />)
+                    } else {
+                      return (<Stock onChange={this.handleInput} onClick={(e) => this.handleBuy(value.companyid)} key={index} cond={"red"} name={value.companyid} price={value.value} changePercent={value.changepercent} shares={value.numofshares} />)
+                    }
                   }
-                }
-              })
-          }
-          </tbody>
-        </table>
+                })
+              }
+            </tbody>
+          </table>
         </div>
       );
     }
