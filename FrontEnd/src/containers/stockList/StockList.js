@@ -12,55 +12,77 @@ class StockList extends Component {
       id: props.id,
       userstocks:props.stocks
     } 
-
+    this.handleChange = this.handleChange.bind(this);
   }
-  
-    
   
   componentDidMount() {
     let self = this; 
-    let stocksL = []; 
-    fetch("http://localhost:3005/getCompany").then(res2=>{
+    let stocksList = []; 
+    fetch("http://localhost:3005/company").then((res2) => {
       return res2.json();
-    }).then(myJson2 =>{
-      let promises = [];
-      myJson2.forEach((element,index) => {
-        stocksL[index] = element; 
-        let url= "http://localhost:3005/getPrice/"+element.priceid;
-        let promise = new Promise((resolve, reject) => {
-          fetch(url).then(priceRes => {
-            return priceRes.json();
-          }).then(pJson =>{
-            stocksL[index].price =pJson.value;
-            console.log(stocksL[index]);
-            resolve();
-          });
-        });
-        promises.push(promise);
+    }).then((json) => {
+      json.forEach((element) => {
+          stocksList.push(element);
       });
-      Promise.all(promises).then(() => {
-        console.log(stocksL[1]);
-        console.log(stocksL[0]);
-        self.setState({stocks:stocksL});
-      })
+      self.setState({stocks: stocksList});
     })
-    
+  }
+
+  handleChange(event) {
+    let st = this.state; 
+    st.query = event.target.value; 
+    this.setState(st); 
+  }
+
+  handleBuy(event) {
+    fetch("http://localhost:3005/buy",
+    {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'same-origin',
+      headers:{
+        "Content-Type": "application/json; charset=utf-8"
+      }
+      //body: JSON.stringify({name: data}),
+    }).then((result) => {
+
+    })
+  }
+
+  handleAdd(event) {
+
   }
  
  
     render() {
-      let stockr = this.state.stocks; 
+      let stockr = this.state.stocks;
       return (
-        <div className= "StockList" key='1'>
-     
-            {
-              stockr.map((value,index) =>{
-                return (<li key={index}>
-                <Stock name= {value.companyid} shares= {value.numofShares} price= {value.price}/>
-                </li>)
+        <div className="tableDiv">
+        <table>
+          <thead>
+          <tr>
+            <th>CompanyID</th>
+            <th>Price</th>
+            <th>Shares</th>
+            <input onChange={this.handleChange} value={this.state.query}></input>
+          </tr>
+          </thead>
+          <tbody>
+          {
+              stockr.map((value,index) => {
+                if (value.companyid.includes(this.state.query.toUpperCase())) {
+                  let change = value.changepercent;
+                  if (value.changepercent >= 0) {
+                    change = "+" + value.changepercent;
+                    return ( <Stock onClick={this.handleBuy} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares}/>)
+                  } else {
+                    return ( <Stock onClick={this.handleAdd} key={index} cond={"red"} name={value.companyid} price={value.value} changePercent={value.changepercent} shares={value.numofshares}/>)
+                  }
+                }
               })
-            }
-   
+          }
+          </tbody>
+        </table>
         </div>
       );
     }

@@ -1,12 +1,18 @@
 import React from 'react'; 
 import './Stock.css'
-const Stock = (props) =>{
+const Stock = (props) => {
     return (
-        <div className="Stock">
-            <p     text-align="left"
-    margin-right= "auto">{props.name}</p> <p>{props.price}</p> <p  text-align="right"
-    margin-left= "auto">{props.shares}</p>
-        </div>
+        <tr>
+            <td>{props.name}</td>
+            <td>{props.price}<p className={props.cond}>{props.changePercent}</p></td>
+            <td>{props.shares}</td>
+            <td>
+                <button onClick={props.onClick}>BUY</button>
+            </td>
+            <td>
+                <button>ADD</button>
+            </td>
+        </tr>
     )
 }
 export default Stock; 

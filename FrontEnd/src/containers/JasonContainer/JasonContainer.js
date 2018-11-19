@@ -167,9 +167,9 @@ handleForm(){
     return (<form onSubmit={this.submitDataBuy.bind(this)}> 
     <label>
       Buy: 
-   <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("comp",e)} value = {this.state.query}/>
+   <input  maxLength="4" size="4" onChange={(e)=>this.handleChangeBuy("comp",e)} value = {this.state.query}/>
      #Shares:
-   <input  maxlength="4" size="4" onChange={(e)=>this.handleChangeBuy("price",e)} value={this.state.queryP}/>  
+   <input  maxLength="4" size="4" onChange={(e)=>this.handleChangeBuy("price",e)} value={this.state.queryP}/>  
    <input type="submit" value="Submit"/>
    </label>            
    </form>);
@@ -177,7 +177,7 @@ handleForm(){
     return (<form onSubmit={this.submitDataWatchList.bind(this)}>
     <label>
         Add To Watchlist:
-        <input maxlength="0" size="4" onChange={this.handleChangeWatchList.bind(this)} value = {this.state.query}/>
+        <input maxLength="0" size="4" onChange={this.handleChangeWatchList.bind(this)} value = {this.state.query}/>
         <input type="submit" value="Submit"/>
     </label>
     </form>   );
