@@ -5,7 +5,8 @@ class WatchList extends Component{
     constructor(props){
         super(props)
         this.state ={
-            WatchList: props.list
+            WatchList: props.list,
+            handler: props.handler
         }
        
     }

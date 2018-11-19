@@ -43,10 +43,10 @@ class JasonContainer extends Component {
             return <WatchList name= {this.state.name} list ={this.state.Watchlist}/>
             break;
             case("s"):
-            return <Stocklist  handler = {this.handlePortfolioChange} id={this.state.user} portfolio={this.state.Portfolio}/>
+            return <Stocklist watchler={this.handleChangeWatchList} handler = {this.handlePortfolioChange} id={this.state.user} portfolio={this.state.Portfolio}/>
             break;
             case("d"):
-                return <WatchList name= {this.state.name}/>
+                return <WatchList  name= {this.state.name}/>
                 break;
             default: 
             return <Portfolio name={this.state.name} stocks = {this.state.Portfolio}/>
@@ -152,10 +152,11 @@ class JasonContainer extends Component {
         })
 
     }
-    handleChangeWatchList(event){
-        let curr = this.state
-        curr.query = event.target.value;
-        this.setState(curr);
+    handleChangeWatchList(par){
+       let jasonWorksAtGoogle = this.state;
+       console.log(par);
+       jasonWorksAtGoogle.Watchlist.push(par);
+       this.setState(jasonWorksAtGoogle);
     }
 
     render(){

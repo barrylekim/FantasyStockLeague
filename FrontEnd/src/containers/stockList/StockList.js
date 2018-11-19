@@ -11,11 +11,13 @@ class StockList extends Component {
       stocks:[],
       id: props.id,
       userstocks:props.stocks,
-      handler: props.handler
+      handler: props.handler,
+      watchler: props.watchler
     } 
     this.handleInput = this.handleInput.bind(this);
     this.handleBuy = this.handleBuy.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.handleAdd = this.handleAdd.bind(this);
   }
   
   componentDidMount() {
@@ -78,8 +80,8 @@ class StockList extends Component {
     this.setState(state);
   }
 
-  handleAdd(event) {
-
+  handleAdd(value,event) {
+    this.state.watchler(value);
   }
  
  
@@ -103,9 +105,9 @@ class StockList extends Component {
                     let change = value.changepercent;
                     if (value.changepercent >= 0) {
                       change = "+" + value.changepercent;
-                      return (<Stock onChange={this.handleInput} onClick={(e) => this.handleBuy(value.companyid)} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares} />)
+                      return (<Stock onChange={this.handleInput} onAdd={(ez)=>this.handleAdd(value,ez)} onClick={(e) => this.handleBuy(value.companyid)} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares} />)
                     } else {
-                      return (<Stock onChange={this.handleInput} onClick={(e) => this.handleBuy(value.companyid)} key={index} cond={"red"} name={value.companyid} price={value.value} changePercent={value.changepercent} shares={value.numofshares} />)
+                      return (<Stock onChange={this.handleInput} onAdd={(ez)=>this.handleAdd(value,ez)} onClick={(e) => this.handleBuy(value.companyid)} key={index} cond={"red"} name={value.companyid} price={value.value} changePercent={value.changepercent} shares={value.numofshares} />)
                     }
                   }
                 })
