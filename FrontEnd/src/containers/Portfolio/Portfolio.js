@@ -20,7 +20,7 @@
          console.log(self.state);
          let stocksr = this.state.stocks; 
          return(
-             <div>
+             <div className="test">
                  <table>
                      <thead>
                      <tr>

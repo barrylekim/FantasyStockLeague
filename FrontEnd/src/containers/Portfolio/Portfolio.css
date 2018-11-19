@@ -1,4 +1,4 @@
-.Primary {font-size: .71429rem;
+/* .Primary {font-size: .71429rem;
 color: #2e2e2f;
 text-align: left;
 margin-right: auto;
@@ -6,6 +6,7 @@ margin-top: 2px;
 justify-content: flex-start;
 font-weight: 700;
 height: 50px;}
+
 .TableH{
     padding: 0 0 6px 5px;
     font-weight: 600;
@@ -18,13 +19,14 @@ height: 50px;}
     vertical-align: bottom;
     display:flex;    
     align-items:center;
+} */
+
+.test {
+    display: inline-block;
 }
 
-.StockList{
-    margin-left: auto;
-    margin-right: auto;
-}
 
+/*
 td {
     padding: 8px;
     text-align: left;
@@ -38,16 +40,17 @@ th {
 }
 
 thead, tbody { 
-    display: block;
     text-align: center;
+    display: inline-block;
 }
 
 tbody {
-    height: 650px;       /* Just for the demo          */
-    overflow-y: auto;    /* Trigger vertical scroll    */
-    overflow-x: hidden;  /* Hide the horizontal scroll */
+    height: 50px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 tr:nth-child(even) {background-color: #f2f2f2;}
 
-tr:hover {background-color: #f5f5f5;}
+tr:hover {background-color: #f5f5f5;} 
+ */

@@ -86,14 +86,14 @@ class StockList extends Component {
     render() {
       let stockr = this.state.stocks;
       return (
-        <div className="tableDiv">
+        <div className="test">
           <table>
             <thead>
               <tr>
                 <th>CompanyID</th>
                 <th>Price</th>
                 <th>Shares</th>
-                <input onChange={this.handleChange}></input>
+                <input className="search" onChange={this.handleChange}></input>
               </tr>
             </thead>
             <tbody>

@@ -30,23 +30,23 @@ class LeaderBoard extends Component{
         let peoples = this.state.people;
         return(
             <div className="LeaderBoard">
-<header className="headerz">
-        <h2 class="title"> Leaderboard</h2>
-    </header>
-    <table>
-    <tr>
-        <th className="">Player</th>
-        <th>Networth</th>
-            <th>Total Returns</th>
-    </tr>
-    {peoples.map((value,index)=>{
-        return(<tr>
-            <td>{value.name}</td>
-            <td>{value.funds}</td>
-            <td>{value.returns}</td>
-        </tr>)
-    })}
-</table>
+                <header className="headerz">
+                    <h2 class="title"> Leaderboard</h2>
+                </header>
+                <table>
+                    <tr>
+                        <th className="">Player</th>
+                        <th>Networth</th>
+                        <th>Total Returns</th>
+                    </tr>
+                    {peoples.map((value, index) => {
+                        return (<tr>
+                            <td>{value.name}</td>
+                            <td>{value.funds}</td>
+                            <td>{value.returns}</td>
+                        </tr>)
+                    })}
+                </table>
             </div>
         );
     }

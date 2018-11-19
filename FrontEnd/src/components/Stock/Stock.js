@@ -4,7 +4,7 @@ const Stock = (props) => {
     return (
         <tr>
             <td>{props.name}</td>
-            <td>{props.price}<p className={props.cond}>{props.changePercent}</p></td>
+            <td>{props.price}<span className={props.cond}>{props.changePercent}</span></td>
             <td>{props.shares}</td>
             <td>
                 <input onChange={props.onChange} type="text" class="textBox"></input>

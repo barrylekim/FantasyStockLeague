@@ -3,8 +3,12 @@
     margin-right: auto;
 }
 
+.search {
+    width: 45px;
+}
+
 td {
-    padding: 8px;
+    padding: 6px;
     text-align: left;
 }
 
@@ -16,14 +20,14 @@ th {
 }
 
 thead, tbody { 
-    display: block;
     text-align: center;
+    display: block;
 }
 
 tbody {
-    height: 650px;       /* Just for the demo          */
-    overflow-y: auto;    /* Trigger vertical scroll    */
-    overflow-x: hidden;  /* Hide the horizontal scroll */
+    height: 650px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 tr:nth-child(even) {background-color: #f2f2f2;}
