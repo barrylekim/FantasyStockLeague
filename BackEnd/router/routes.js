@@ -5,7 +5,7 @@ const init = require("./init");
 var pg = require("pg");
 var client = new pg.Client(process.env.CONNECTIONSTR);
 client.connect();
-let startingFund = 30000;
+let startingFund = 3000000;
 let IDMap = {};
 
 init.start();

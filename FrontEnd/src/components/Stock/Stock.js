@@ -11,7 +11,7 @@ const Stock = (props) => {
                 <button onClick={props.onClick}>BUY</button>
             </td>
             <td>
-                <button>ADD</button>
+                <button onClick={props.onAdd}>ADD</button>
             </td>
         </tr>
     )
