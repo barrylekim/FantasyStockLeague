@@ -27,7 +27,6 @@
     <th className= "Primary">Shares</th>
     <th className= "Primary">Total Value</th>
   </tr>
-
                {stocksr.map((value,index)=>{
                 return(<tr>
                   <td>{value.companyid}</td>

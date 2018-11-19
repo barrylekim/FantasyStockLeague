@@ -130,34 +130,7 @@ class JasonContainer extends Component {
         })
 
     }
-    submitDeleteUser(event){
-        event.preventDefault();
-        let st = this.state;
-        let data = {
-            name: st.name,
-        }
-        fetch('http://localhost:3005/deleteTrader',{
-            method: 'POST',
-            mode: 'cors',
-            credentials: 'same-origin',
-            headers:{
-                "Content-Type": "application/json; charset=utf-8"
-            },
-            body: JSON.stringify(data),
-        }).then(res =>{
-            console.log(res);
-            return res.json();
-        }).then(myJ=>{
-            console.log(myJ);
-        })
-
-    }
     handleChangeWatchList(event){
-        let curr = this.state
-        curr.query = event.target.value;
-        this.setState(curr);
-    }
-    handleChangeUser(event){
         let curr = this.state
         curr.query = event.target.value;
         this.setState(curr);
@@ -183,15 +156,6 @@ handleForm(){
     </form>   );
 
   }
-  else if (this.state.currentView==="d"){
-      return (<form onSubmit={this.submitDeleteUser.bind(this)}>
-          <label>
-              Delete User:
-              <button type="submit" value="Submit" text="submit" onClick={this.handleChangeUser.bind(this)}>Submit</button>
-          </label>
-      </form>   );
-
-  }
 }
     render(){
         let currS = this.state; 
@@ -201,7 +165,6 @@ handleForm(){
                 <button onClick={(e)=>this.handlechange("p",e)}>Holdings</button>
                 <button onClick={(e)=>this.handlechange("w",e)} >Watchlist</button>
                 <button onClick={(e)=>this.handlechange("s",e)}>Stocklist</button>
-                <button onClick={(e)=>this.handlechange("d",e)}>Delete Account</button>
 </div>
      <User name={this.state.name}worth={this.state.worth} cash= {this.state.funds}/>
 {this.renderSwitch(currS.currentView)}

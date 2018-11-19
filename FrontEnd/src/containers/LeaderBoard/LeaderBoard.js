@@ -18,7 +18,7 @@ class LeaderBoard extends Component{
       myJson2.forEach((element,index) => {
         let person={}; 
         person.name = element.tradername;
-        person.funds = element.funds;
+        person.funds = element.networth;
         peoplez.push(person);  
       });
       curSt.people = peoplez;
@@ -32,15 +32,21 @@ class LeaderBoard extends Component{
 <header className="headerz">
         <h2 class="title"> Leaderboard</h2>
     </header>
-    {
-              peoples.map((value,index) =>{
-                return (<li key={index}>
-                <Member name= {value.name} funds= {value.funds} />
-                </li>)
-              })
-            }
+    <table>
+    <tr>
+        <th className="">Player</th>
+        <th>Portfolio Value</th>
+    </tr>
+    {peoples.map((value,index)=>{
+        return(<tr>
+            <td>{value.name}</td>
+            <td>{value.funds}</td>
+        </tr>)
+    })}
+</table>
             </div>
         );
     }
 }
 export default LeaderBoard;
+

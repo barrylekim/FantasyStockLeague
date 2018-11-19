@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import Leaderboard from './containers/LeaderBoard/LeaderBoard'
-import User from './components/User/User'
+import GameInsight from './containers/GameInsights/GameInsights'
 import JasonContainer from './containers/JasonContainer/JasonContainer'
 //"postgres://" + "rohan" + ":" + "jason" +  "@localhost:" + "5432" + "/304"
 class App extends Component {
@@ -20,10 +20,42 @@ class App extends Component {
     this.submitData = this.submitData.bind(this); // <-- add this line
     this.handleChange = this.handleChange.bind(this); 
     this.signupData = this.signupData.bind(this);
-     
+    this.DeleteAccount = this.DeleteAccount.bind(this);
+   
   }
  
-
+  DeleteAccount(event){
+    console.log(this.state.id);
+    event.preventDefault();
+      let st = this.state;
+      let data = {
+          name: st.value,
+      }
+    fetch('http://localhost:3005/deleteTrader' ,{
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'same-origin',
+        headers:{
+            "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify(data),
+    }).then(res =>{
+      console.log(res);
+      return res.json();
+    }).then(myJ=>{
+      st = {
+        value: "",
+        Portfolio:[],
+        funds: null,
+        worth: null,
+        watchlist:[],
+        query:"",
+        queryP:"",
+        id:null,
+      }
+      this.setState(st);
+    })
+  }
   handleChange(event) {
     
     let curr = this.state; 
@@ -135,8 +167,8 @@ class App extends Component {
           </div>
         </form>:
     [<Leaderboard className="LeaderBoard"/>,
-        <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} />
-   ]}
+    <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} />,
+   <GameInsight/>,<button class="btn3" onClick={this.DeleteAccount}>Delete Account</button>]}
    </div>
     );
   }
