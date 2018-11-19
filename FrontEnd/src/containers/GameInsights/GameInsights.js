@@ -123,7 +123,7 @@ class GameInsights extends Component {
         return (<div>
             <select>
   <option value="volvo">SHOW ME COMPANIES IN ORDER OF STOCK VALUE</option>
-  <option value="saab">SHOW ME THE PERSON WHIGH THE MOST SHARES OF COMPANY X</option>
+  <option value="saab">SHOW ME THE PERSON WITH THE MOST SHARES OF COMPANY X</option>
   <option value="mercedes">SHOW ME ALL TRANSACTIONS</option>
   <option value="audi">Audi</option>
 </select>
