@@ -18,7 +18,8 @@ class JasonContainer extends Component {
             query: "",
             queryP:""
         }
-        this.handlechange = this.handlechange.bind(this); 
+        this.handlechange = this.handlechange.bind(this);
+        this.handlePortfolioChange = this.handlePortfolioChange.bind(this); 
         this.renderSwitch = this.renderSwitch.bind(this);
         this.submitDataBuy = this.submitDataBuy.bind(this);
         this.handleChangeBuy = this.handleChangeBuy.bind(this);
@@ -42,7 +43,7 @@ class JasonContainer extends Component {
             return <WatchList name= {this.state.name} list ={this.state.Watchlist}/>
             break;
             case("s"):
-            return <Stocklist id={this.state.user} portfolio={this.state.Portfolio}/>
+            return <Stocklist  handler = {this.handlePortfolioChange} id={this.state.user} portfolio={this.state.Portfolio}/>
             break;
             case("d"):
                 return <WatchList name= {this.state.name}/>
@@ -61,6 +62,28 @@ class JasonContainer extends Component {
           curr.queryP = event.target.value;
           this.setState({curr});
         }
+      }
+      handlePortfolioChange(msg){
+          let st = this.state;
+          let check = true;
+          st.Portfolio.forEach((el)=>{
+              if(el.companyid===msg.companyid){
+                  check = false;
+              }
+          })
+          if (check) {
+            st.Portfolio.push(msg);
+          } else {
+            st.Portfolio.forEach((el)=>{
+                if(el.companyid===msg.companyid){
+                    let num = parseInt(el.shares);
+                    num += parseInt(msg.shares);
+                    el.shares = num.toString();
+                }
+            })
+          }
+          this.setState(st);
+         
       }
      submitDataBuy(event){
         event.preventDefault();
@@ -106,7 +129,7 @@ class JasonContainer extends Component {
         }) 
       })
       }
-      submitDataWatchList(event){
+      submitDataWatchList(event) {
         event.preventDefault(); 
         let st = this.state;
         let data = {
