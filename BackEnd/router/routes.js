@@ -153,28 +153,6 @@ router.post("/buy", async (req, res) => {
     }
 });
 
-router.post("/sell", async (req, res) => {
-    try {
-        let TID = req.body.traderID;
-        let CID = req.body.companyID;
-        let numOfShares = req.body.numOfShares;
-        let company = await helper.getCompanyByID(CID);
-        if (company.rows.length === 0) {
-            res.status(400).json({ error: "Invalid CompanyID" });
-        } else {
-            let priceID = company.rows[0].priceid;
-            let price = await helper.getValue(priceID);
-            await helper.addTransaction(TID, CID, priceID, 0, numOfShares);
-            await helper.updateFunds(TID, price, numOfShares, 0);
-            let portfolioID = await helper.getPortfolioID(TID);
-            await helper.checkContains(portfolioID, CID, 0, numOfShares);
-            res.status(200).json({ message: numOfShares + " of " + CID + " sold" });
-        }
-    } catch (err) {
-        res.status(500).json({ error: err });
-    }
-});
-
 generateID = function () {
     let id = Math.floor((Math.random() * 1000000)).toString();
     while (IDMap[id]) {
@@ -275,27 +253,6 @@ router.get("/getMostTransactionPlayer", (req, res) => {
     })
 });
 
-//returns top 5 players on the leaderboard, does not work because it looks at funds
-// router.get("/getTopPlayers", (req, res) => {
-//     let getALLTradersSortedTopDownSQL = `SELECT traderID, tradername, funds FROM trader ORDER BY funds DESC`;
-//     client.query(getALLTradersSortedTopDownSQL, (err, result) => {
-//         if (err) {
-//             console.log(getALLTradersSortedTopDownSQL + err);
-//         } else {
-//             // console.log(result);
-//             let arr = [];
-//             var index = 0;
-//             var length = result.rows.length;
-//             while (index < 10 && length > 0) {
-//                 arr.push(result.rows[index]);
-//                 index++;
-//                 length--;
-//             }
-//             res.send(arr);
-//         }
-//     });
-// });
-
 // returns top 10 players by value
 router.get("/getTopPlayersByValue", (req, res) => {
     let getALLTradersIDandName = `SELECT traderID, tradername FROM trader`;
@@ -389,7 +346,8 @@ router.get("/getAllPlayers", (req, res) => {
     });
 });
 
-
+// need to fix trader
+// from leaderboard and portfolio
 router.post("/deleteTrader", (req, res) => {
     let playerName = req.body.name;
     let findWatchID = `SELECT traderID FROM trader WHERE tradername = $1`;
@@ -455,41 +413,6 @@ router.get("/getTraders", (req, res) => {
     });
 });
 
-router.get("/getPrice/:id", (req, res) => {
-    let id = req.params.id;
-    let select = `SELECT * FROM price WHERE priceID = $1`;
-    client.query(select, [id], (err, result) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send(result.rows[0]);
-        }
-    })
-});
-
-router.get("/getCompany/:id", (req, res) => {
-    let id = req.params.id;
-    let select = `SELECT * FROM company WHERE companyID = $1`;
-    client.query(select, [id], (err, result) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send(result.rows[0]);
-        }
-    })
-});
-
-router.get("/getPrice", (req, res) => {
-    let select = `SELECT * FROM price`;
-    client.query(select, (err, result) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send(result.rows);
-        }
-    });
-});
-
 router.get("/company/:id?", (req, res) => {
     if (req.params.id === undefined) {
         let select = `SELECT companyid, industry, numofshares, value, changePercent FROM company NATURAL JOIN price`;
@@ -510,17 +433,6 @@ router.get("/company/:id?", (req, res) => {
             }
         });
     }
-});
-
-router.get("/getCompany", (req, res) => {
-    let select = `SELECT * FROM company`;
-    client.query(select, (err, result) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send(result.rows);
-        }
-    });
 });
 
 module.exports = router;
