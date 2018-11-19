@@ -19,6 +19,7 @@ class LeaderBoard extends Component{
         let person={}; 
         person.name = element.tradername;
         person.funds = element.networth;
+        person.returns = element.networth - 30000;
         peoplez.push(person);  
       });
       curSt.people = peoplez;
@@ -35,12 +36,14 @@ class LeaderBoard extends Component{
     <table>
     <tr>
         <th className="">Player</th>
-        <th>Portfolio Value</th>
+        <th>Networth</th>
+            <th>Total Returns</th>
     </tr>
     {peoples.map((value,index)=>{
         return(<tr>
             <td>{value.name}</td>
             <td>{value.funds}</td>
+            <td>{value.returns}</td>
         </tr>)
     })}
 </table>
