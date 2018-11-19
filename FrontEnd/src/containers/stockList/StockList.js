@@ -10,6 +10,7 @@ class StockList extends Component {
       amount:"",
       stocks:[],
       id: props.id,
+      name: props.name,
       userstocks:props.stocks,
       handler: props.handler,
       watchler: props.watchler
@@ -81,7 +82,18 @@ class StockList extends Component {
   }
 
   handleAdd(value,event) {
-    this.state.watchler(value);
+    fetch("http://localhost:3005/addToWatchList",
+    {
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'same-origin',
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify({ name: this.state.name, CID: value.companyid }),
+    }).then(() => {
+      this.state.watchler(value);
+    })
   }
  
  
@@ -105,7 +117,7 @@ class StockList extends Component {
                     let change = value.changepercent;
                     if (value.changepercent >= 0) {
                       change = "+" + value.changepercent;
-                      return (<Stock onChange={this.handleInput} onAdd={(ez)=>this.handleAdd(value,ez)} onClick={(e) => this.handleBuy(value.companyid)} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares} />)
+                      return (<Stock onChange={this.handleInput} onAdd={(ez)=>this.handleAdd(value, ez)} onClick={(e) => this.handleBuy(value.companyid)} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares} />)
                     } else {
                       return (<Stock onChange={this.handleInput} onAdd={(ez)=>this.handleAdd(value,ez)} onClick={(e) => this.handleBuy(value.companyid)} key={index} cond={"red"} name={value.companyid} price={value.value} changePercent={value.changepercent} shares={value.numofshares} />)
                     }

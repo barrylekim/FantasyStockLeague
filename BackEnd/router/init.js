@@ -17,7 +17,7 @@ addAPICompanies = function() {
         let result = await helper.getAPI("https://ws-api.iextrading.com/1.0/ref-data/symbols");
         let promises = [];
         let json = JSON.parse(result);
-        for (var i = 0; i < json.length; i+=5) {
+        for (var i = 0; i < json.length; i+=15) {
             let symbol = json[i].symbol;
             let promise = helper.getAPI("https://api.iextrading.com/1.0/stock/" + symbol + "/company").then(async (data) => {
                 try {

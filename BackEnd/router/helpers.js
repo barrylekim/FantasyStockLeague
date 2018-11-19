@@ -138,7 +138,6 @@ module.exports = {
         return new Promise((resolve, reject) => {
             let id = generateID();
             let date = new Date();
-            if (typeof price === "number" && typeof changePercent === "number");
             let addPrice = `INSERT INTO price(priceID, pDate, value, changePercent) values($1, $2, $3, $4)`;
             client.query(addPrice, [id, date.toString(), price, changePercent], (err, result) => {
                 if (err) {
@@ -205,18 +204,20 @@ module.exports = {
         let price = json.latestPrice;
         let volume = json.latestVolume;
         let changePercent = json.changePercent;
-        let id = await this.createPriceEntry(price, changePercent);
-        let find = `SELECT * from company WHERE companyid = $1`;
-        let check = await client.query(find, [symbol]);
-        if (check.rows.length === 0) {
-            if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0 && typeof volume === "number") {
-                let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
-                await client.query(addQuery, [symbol, volume, industry, name, id]);
-            }
-        } else {
-            if (typeof symbol === "string" && typeof volume === "number") {
-                let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
-                await client.query(updateCompany, [id, volume, symbol]);
+        if (typeof price === "number" && typeof name === "string" && typeof volume === "number" && typeof changePercent === "number") {
+            let id = await this.createPriceEntry(price, changePercent);
+            let find = `SELECT * from company WHERE companyid = $1`;
+            let check = await client.query(find, [symbol]);
+            if (check.rows.length === 0) {
+                if (typeof symbol === "string" && typeof industry === "string" && industry.length > 0 && typeof name === "string" && name.length > 0 && typeof volume === "number") {
+                    let addQuery = `INSERT INTO company(companyID, numOfShares, industry, companyName, priceID) values($1, $2, $3, $4, $5)`;
+                    await client.query(addQuery, [symbol, volume, industry, name, id]);
+                }
+            } else {
+                if (typeof symbol === "string" && typeof volume === "number") {
+                    let updateCompany = `UPDATE company SET priceid=($1), numOfShares=($2) WHERE companyid=($3)`;
+                    await client.query(updateCompany, [id, volume, symbol]);
+                }
             }
         }
     },

@@ -44,11 +44,8 @@ class JasonContainer extends Component {
             return <WatchList name= {this.state.name} list ={this.state.Watchlist}/>
             break;
             case("s"):
-            return <Stocklist watchler={this.handleChangeWatchList} handler = {this.handlePortfolioChange} id={this.state.user} portfolio={this.state.Portfolio}/>
+            return <Stocklist name={this.state.name} watchler={this.handleChangeWatchList} handler = {this.handlePortfolioChange} id={this.state.user} portfolio={this.state.Portfolio}/>
             break;
-            case("d"):
-                return <WatchList  name= {this.state.name}/>
-                break;
             default: 
             return <Portfolio name={this.state.name} stocks = {this.state.Portfolio}/>
         }

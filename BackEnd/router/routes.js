@@ -153,7 +153,7 @@ router.post("/buy", async (req, res) => {
                 await helper.updateFunds(TID, price, numOfShares, 1);
                 let portfolioID = await helper.getPortfolioID(TID);
                 await helper.checkContains(portfolioID, CID, 1, numOfShares);
-                res.status(200).json({ message: numOfShares + " of " + CID + " purchased" });
+                res.status(200).json({ price: price });
             } else {
                 res.status(400).json({ error: "Trader does not have enough funds" });
             }
