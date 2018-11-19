@@ -130,7 +130,7 @@ class GameInsights extends Component {
             <form onSubmit={this.submitData}>
         <input onChange={this.handleChange} value={this.state.queryShare}></input>
         <input type="submit" value="Submit"></input></form>
-        {this.state.queryFound ? this.state.result : <div>TypeheretoFindThePerson with the higest shraes of company X </div>}
+        {this.state.queryFound ? this.state.result : <div>Type here to find the person with the highest shares of company X</div>}
         <button onClick = {this.transB}>Click Here to See All Transactions</button>
         {this.handleTransactions(this.state.showTransactions)}
         <div>{this.state.mostTrans}</div>
