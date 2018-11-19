@@ -11,7 +11,7 @@ class JasonContainer extends Component {
             currentView:"p",
             Portfolio:props.Portfolio,
             user:props.id,
-            Watchlist: props.Watchlist,
+            Watchlist: props.watchList,
             name: props.name,
             worth:props.worth,
             funds:props.funds,
@@ -22,7 +22,6 @@ class JasonContainer extends Component {
         this.renderSwitch = this.renderSwitch.bind(this);
         this.submitDataBuy = this.submitDataBuy.bind(this);
         this.handleChangeBuy = this.handleChangeBuy.bind(this);
-        this.handleForm = this.handleForm.bind(this);  
         this.submitDataWatchList = this.submitDataWatchList.bind(this); 
         this.handleChangeWatchList = this.handleChangeWatchList.bind(this); 
     }
@@ -40,7 +39,7 @@ class JasonContainer extends Component {
             return <Portfolio name={this.state.name} stocks = {this.state.Portfolio}/>
             break;
             case('w'):
-            return <WatchList name= {this.state.name}/>
+            return <WatchList name= {this.state.name} list ={this.state.Watchlist}/>
             break;
             case("s"):
             return <Stocklist id={this.state.user} portfolio={this.state.Portfolio}/>
@@ -135,28 +134,7 @@ class JasonContainer extends Component {
         curr.query = event.target.value;
         this.setState(curr);
     }
-handleForm(){
-  if(this.state.currentView==="p"){
-    return (<form onSubmit={this.submitDataBuy.bind(this)}> 
-    <label>
-      Buy: 
-   <input  maxLength="4" size="4" onChange={(e)=>this.handleChangeBuy("comp",e)} value = {this.state.query}/>
-     #Shares:
-   <input  maxLength="4" size="4" onChange={(e)=>this.handleChangeBuy("price",e)} value={this.state.queryP}/>  
-   <input type="submit" value="Submit"/>
-   </label>            
-   </form>);
-  }else if (this.state.currentView==="w"){
-    return (<form onSubmit={this.submitDataWatchList.bind(this)}>
-    <label>
-        Add To Watchlist:
-        <input maxLength="0" size="4" onChange={this.handleChangeWatchList.bind(this)} value = {this.state.query}/>
-        <input type="submit" value="Submit"/>
-    </label>
-    </form>   );
 
-  }
-}
     render(){
         let currS = this.state; 
         return(
@@ -168,7 +146,6 @@ handleForm(){
 </div>
      <User name={this.state.name}worth={this.state.worth} cash= {this.state.funds}/>
 {this.renderSwitch(currS.currentView)}
-{this.handleForm()}
 </div>)
 
     }

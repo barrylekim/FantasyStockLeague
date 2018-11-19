@@ -23,7 +23,13 @@ class App extends Component {
     this.DeleteAccount = this.DeleteAccount.bind(this);
    
   }
- 
+ componentDidMount(){
+   fetch('http://localhost:3005/updatePrice').then(res =>{
+     return res.json();
+   }).then(mine =>{
+     console.log(mine); 
+   })
+ }
   DeleteAccount(event){
     console.log(this.state.id);
     event.preventDefault();
@@ -167,7 +173,7 @@ class App extends Component {
           </div>
         </form>:
     [<Leaderboard className="LeaderBoard"/>,
-    <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} />,
+    <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} watchlist={this.state.watchlist}/>,
    <GameInsight/>,<button class="btn3" onClick={this.DeleteAccount}>Delete Account</button>]}
    </div>
     );
