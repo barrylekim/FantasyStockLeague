@@ -24,8 +24,8 @@
                <table>
   <tr>
     <th className= "Primary">Company</th>
-    <th className= "Primary">Shares</th>
     <th className= "Primary">Total Value</th>
+    <th className= "Primary">Shares</th>
   </tr>
                {stocksr.map((value,index)=>{
                 return(<tr>
