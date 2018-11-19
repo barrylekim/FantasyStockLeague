@@ -26,9 +26,20 @@ class App extends Component {
  
   DeleteAccount(event){
     console.log(this.state.id);
-    event.preventDefault(); 
-    let st = this.state; 
-    fetch('http://localhost:3005/deleteTrader/' +st.id).then(res =>{
+    event.preventDefault();
+      let st = this.state;
+      let data = {
+          name: st.value,
+      }
+    fetch('http://localhost:3005/deleteTrader' ,{
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'same-origin',
+        headers:{
+            "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify(data),
+    }).then(res =>{
       console.log(res);
       return res.json();
     }).then(myJ=>{
@@ -42,7 +53,7 @@ class App extends Component {
         queryP:"",
         id:null,
       }
-      this.setState(st); 
+      this.setState(st);
     })
   }
   handleChange(event) {
@@ -157,7 +168,7 @@ class App extends Component {
         </form>:
     [<Leaderboard className="LeaderBoard"/>,
     <JasonContainer worth={this.state.worth} funds={this.state.funds}Portfolio={this.state.Portfolio} name={this.state.value} id={this.state.id} />,
-   <GameInsight/>,<button onClick={this.DeleteAccount}>Delete Account</button>]}
+   <GameInsight/>,<button class="btn3" onClick={this.DeleteAccount}>Delete Account</button>]}
    </div>
     );
   }
