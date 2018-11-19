@@ -7,7 +7,7 @@ class StockList extends Component {
     super(props);
     this.state ={
       query:"",
-      queryP:"",
+      amount:"",
       stocks:[],
       id: props.id,
       userstocks:props.stocks
@@ -34,7 +34,7 @@ class StockList extends Component {
     this.setState(st); 
   }
 
-  handleBuy(event) {
+  handleBuy(companyid) {
     fetch("http://localhost:3005/buy",
     {
       method: 'POST',
@@ -42,11 +42,19 @@ class StockList extends Component {
       credentials: 'same-origin',
       headers:{
         "Content-Type": "application/json; charset=utf-8"
-      }
-      //body: JSON.stringify({name: data}),
+      },
+      body: JSON.stringify({traderID: this.state.id, companyID: companyid, numOfShares: this.state.amount}),
     }).then((result) => {
-
+      return result.json();
+    }).then((json) => {
+      alert(json.message);
     })
+  }
+
+  handleInput(event) {
+    let state = this.state;
+    state.amount = event.target.value;
+    this.setState(state);
   }
 
   handleAdd(event) {
@@ -64,7 +72,7 @@ class StockList extends Component {
             <th>CompanyID</th>
             <th>Price</th>
             <th>Shares</th>
-            <input onChange={this.handleChange} value={this.state.query}></input>
+            <input onChange={this.handleChange}></input>
           </tr>
           </thead>
           <tbody>
@@ -74,7 +82,7 @@ class StockList extends Component {
                   let change = value.changepercent;
                   if (value.changepercent >= 0) {
                     change = "+" + value.changepercent;
-                    return ( <Stock onClick={this.handleBuy} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares}/>)
+                    return ( <Stock onType={(e) => this.handleInput(e)} onClick={(e)=> this.handleBuy(value.companyid)} key={index} cond={"green"} name={value.companyid} price={value.value} changePercent={change} shares={value.numofshares}/>)
                   } else {
                     return ( <Stock onClick={this.handleAdd} key={index} cond={"red"} name={value.companyid} price={value.value} changePercent={value.changepercent} shares={value.numofshares}/>)
                   }
