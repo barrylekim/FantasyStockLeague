@@ -34,6 +34,7 @@ class JasonContainer extends Component {
             this.setState(st);
         }
     }
+    handle
     renderSwitch(param){
         switch (param){
             case("p"):
@@ -153,9 +154,7 @@ class JasonContainer extends Component {
 
     }
     handleChangeWatchList(event){
-        let curr = this.state
-        curr.query = event.target.value;
-        this.setState(curr);
+       
     }
 
     render(){
