@@ -24,7 +24,7 @@ module.exports = {
                     console.log(query + err);
                 }
             })
-        });
+        });I
     },
 
     createLeaderboard: function () {
